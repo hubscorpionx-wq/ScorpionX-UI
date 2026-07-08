@@ -1,1 +1,170 @@
+--==============================================================================
+-- ScorpioX Window Engine
+--==============================================================================
 
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+
+local Theme = require(script.Parent.Theme)
+local Utils = require(script.Parent.Utils)
+
+local Window = {}
+Window.__index = Window
+
+function Window.new(title, iconId, toggleKey)
+
+	local self = setmetatable({}, Window)
+
+	local player = Players.LocalPlayer
+	local playerGui = player:WaitForChild("PlayerGui")
+
+	local old =
+		playerGui:FindFirstChild("ScorpioXMenu")
+		or CoreGui:FindFirstChild("ScorpioXMenu")
+
+	if old then
+		old:Destroy()
+	end
+
+	local ScreenGui = Instance.new("ScreenGui")
+	ScreenGui.Name = "ScorpioXMenu"
+	ScreenGui.ResetOnSpawn = false
+	ScreenGui.DisplayOrder = 999
+
+	pcall(function()
+		ScreenGui.Parent = CoreGui
+	end)
+
+	if not ScreenGui.Parent then
+		ScreenGui.Parent = playerGui
+	end
+
+	self.Gui = ScreenGui
+
+	----------------------------------------------------
+	-- MAIN
+	----------------------------------------------------
+
+	local Main = Instance.new("Frame")
+
+	Main.Name = "MainFrame"
+	Main.Size = UDim2.fromOffset(520,340)
+	Main.Position = UDim2.new(.5,-260,.5,-170)
+
+	if UserInputService.TouchEnabled then
+		Main.Size = UDim2.new(.92,0,.78,0)
+		Main.Position = UDim2.new(.04,0,.11,0)
+	end
+
+	Main.BackgroundColor3 = Theme.Colors.Background
+	Main.Parent = ScreenGui
+
+	Utils.Corner(Main,Theme.WindowCorner)
+	Utils.Stroke(Main,Theme.Colors.Accent,1.5)
+
+	self.Main = Main
+
+	----------------------------------------------------
+	-- TOPBAR
+	----------------------------------------------------
+
+	local TopBar = Instance.new("Frame")
+
+	TopBar.Name = "TopBar"
+	TopBar.Size = UDim2.new(1,0,0,38)
+	TopBar.BackgroundColor3 = Theme.Colors.Secondary
+	TopBar.Parent = Main
+
+	Utils.Corner(TopBar,Theme.WindowCorner)
+
+	self.TopBar = TopBar
+
+	local Title = Instance.new("TextLabel")
+
+	Title.BackgroundTransparency = 1
+	Title.Position = UDim2.new(0,15,0,0)
+	Title.Size = UDim2.new(1,-30,1,0)
+
+	Title.Font = Theme.BoldFont
+	Title.TextColor3 = Theme.Colors.Text
+	Title.TextXAlignment = Enum.TextXAlignment.Left
+	Title.TextSize = 15
+
+	Title.Text = tostring(title):upper()
+
+	Title.Parent = TopBar
+
+	self.Title = Title
+
+	----------------------------------------------------
+	-- FLOAT BUTTON
+	----------------------------------------------------
+
+	local Toggle
+
+	if iconId and tostring(iconId) ~= "" then
+
+		local id = tostring(iconId):match("%d+")
+
+		Toggle = Instance.new("ImageButton")
+		Toggle.Image = "rbxassetid://"..id
+		Toggle.ScaleType = Enum.ScaleType.Crop
+
+	else
+
+		Toggle = Instance.new("TextButton")
+		Toggle.Text = "SCO"
+
+		Toggle.Font = Theme.BoldFont
+		Toggle.TextSize = 14
+		Toggle.TextColor3 = Theme.Colors.Accent
+
+	end
+
+	Toggle.Name = "Toggle"
+
+	Toggle.Size = UDim2.fromOffset(58,58)
+	Toggle.Position = UDim2.new(0,20,.35,0)
+
+	Toggle.BackgroundColor3 = Theme.Colors.Background
+
+	Toggle.Parent = ScreenGui
+
+	Utils.Corner(Toggle,UDim.new(1,0))
+	Utils.Stroke(Toggle,Theme.Colors.Accent,1.5)
+
+	self.Toggle = Toggle
+
+	----------------------------------------------------
+	-- DRAG
+	----------------------------------------------------
+
+	Utils.MakeDraggable(Main,TopBar)
+	Utils.MakeDraggable(Toggle)
+
+	----------------------------------------------------
+	-- TOGGLE MENU
+	----------------------------------------------------
+
+	Toggle.Activated:Connect(function()
+
+		Main.Visible = not Main.Visible
+
+	end)
+
+	self.ToggleKey = toggleKey or Enum.KeyCode.RightControl
+
+	UserInputService.InputBegan:Connect(function(input,gp)
+
+		if gp then
+			return
+		end
+
+		if input.KeyCode == self.ToggleKey then
+
+			Main.Visible = not Main.Visible
+
+		end
+
+	end)
