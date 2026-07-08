@@ -102,7 +102,7 @@ function Window.new(config)
 	if iconId then
 		local TopBarIcon = Instance.new("ImageLabel")
 		TopBarIcon.Name = "TopBarIcon"
-		TopBarIcon.Size = UDim2.fromOffset(24, 24) -- Dimensione ingrandita
+		TopBarIcon.Size = UDim2.fromOffset(24, 24)
 		TopBarIcon.BackgroundTransparency = 1
 		TopBarIcon.Image = "rbxassetid://" .. iconId
 		TopBarIcon.LayoutOrder = 1
