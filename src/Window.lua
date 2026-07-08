@@ -15,7 +15,7 @@ Window.__index = Window
 
 function Window.new(config)
 	config = config or {}
-	local title = config.Title or "SCORPIO X"
+	local title = config.Title or "SCORPION X HUB"
 	
 	local iconId = tostring(config.Icon or ""):match("%d+")
 	
