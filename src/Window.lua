@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX Window Engine (Modificato per Dimensioni Compatte)
+-- ScorpioX Window Engine
 --==============================================================================
 
 local Players = game:GetService("Players")
@@ -14,7 +14,16 @@ local Utils = Modules.Utils
 local Window = {}
 Window.__index = Window
 
-function Window.new(title, iconId, toggleKey)
+-- MODIFICATO: Accetta la tabella config invece dei singoli parametri isolati
+function Window.new(config)
+	config = config or {}
+	local title = config.Title or "SCORPIO X"
+	local iconId = config.Icon or ""
+	local toggleKey = config.ToggleKey or Enum.KeyCode.RightControl
+	
+	-- Dimensioni di default se non inserite nello script di test
+	local customSize = config.Size or UDim2.fromOffset(440, 340)
+	local customTouchSize = config.TouchSize or UDim2.new(.58, 0, .75, 0) -- Impostato di base a 0.58 (molto più stretto)
 
 	local self = setmetatable({}, Window)
 
@@ -45,20 +54,20 @@ function Window.new(title, iconId, toggleKey)
 	self.Gui = ScreenGui
 
 	----------------------------------------------------
-	-- MAIN (Dimensioni modificate per renderlo più stretto)
+	-- MAIN
 	----------------------------------------------------
 
 	local Main = Instance.new("Frame")
-
 	Main.Name = "MainFrame"
-	-- MODIFICATO: Ridotta la larghezza da 520 a 440 per un look più verticale e quadrato
-	Main.Size = UDim2.fromOffset(440, 340)
-	Main.Position = UDim2.new(.5, -220, .5, -170) -- Centrato perfettamente in base alla nuova larghezza
 
+	-- Impostazione PC (centrata matematicamente sulla larghezza pixel dell'offset)
+	Main.Size = customSize
+	Main.Position = UDim2.new(.5, -Main.Size.X.Offset/2, .5, -Main.Size.Y.Offset/2)
+
+	-- Impostazione Mobile / Touch (centrata dinamicamente sullo Scale)
 	if UserInputService.TouchEnabled then
-		-- MODIFICATO: Ridotta la larghezza anche su mobile (.75 invece di .92) per imitare la seconda foto
-		Main.Size = UDim2.new(.75, 0, .78, 0)
-		Main.Position = UDim2.new(.125, 0, .11, 0)
+		Main.Size = customTouchSize
+		Main.Position = UDim2.new(.5 - (Main.Size.X.Scale/2), 0, .5 - (Main.Size.Y.Scale/2), 0)
 	end
 
 	Main.BackgroundColor3 = Theme.Colors.Background
@@ -172,7 +181,7 @@ function Window.new(title, iconId, toggleKey)
 		end
 
 	end)
-		----------------------------------------------------
+	----------------------------------------------------
 	-- SIDEBAR
 	----------------------------------------------------
 
@@ -301,7 +310,7 @@ function Window.new(title, iconId, toggleKey)
 
 	end
 
-		----------------------------------------------------
+	----------------------------------------------------
 	-- CREATE TAB
 	----------------------------------------------------
 
