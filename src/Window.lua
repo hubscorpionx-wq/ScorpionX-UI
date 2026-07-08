@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX Window Engine
+-- ScorpioX Window Engine (Ripristinato)
 --==============================================================================
 
 local Players = game:GetService("Players")
@@ -122,7 +122,7 @@ function Window.new(config)
 	Utils.MakeDraggable(Toggle)
 
 	----------------------------------------------------
-	-- TOGGLE MENU (Dinamico)
+	-- TOGGLE MENU
 	----------------------------------------------------
 	Toggle.Activated:Connect(function()
 		Main.Visible = not Main.Visible
@@ -230,7 +230,6 @@ function Window.new(config)
 		self.Tabs[name] = tabFrame
 		self.Buttons[name] = tabButton
 
-		-- AGGANCIO DI ELEMENTS ALLA TAB
 		local tabContainer = {}
 		local Elements = Modules.Elements
 
@@ -252,12 +251,6 @@ function Window.new(config)
 		return tabContainer
 	end
 
-	function self:Notify(title, text, duration)
-		-- Semplice notifica fallback se non l'hai creata altrove
-		print("[" .. tostring(title) .. "]: " .. tostring(text))
-	end
-
-	Modules.CurrentWindowInstance = self
 	return self
 end
 
