@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX Window Engine
+-- ScorpioX Window Engine (Con Supporto Icone)
 --==============================================================================
 
 local Players = game:GetService("Players")
@@ -14,15 +14,15 @@ local Utils = Modules.Utils
 local Window = {}
 Window.__index = Window
 
--- MODIFICATO: Accetta l'intera tabella config
 function Window.new(config)
 	config = config or {}
 	local title = config.Title or "SCORPIO X"
-	local iconId = config.Icon or ""
+	
+	-- Gestione ID Icona (pulisce la stringa prendendo solo i numeri se viene passato rbxassetid://)
+	local iconId = tostring(config.Icon or ""):match("%d+")
 	local toggleKey = config.ToggleKey or Enum.KeyCode.RightControl
 	
-	-- Unica impostazione pixel per entrambi (Larghezza, Altezza)
-	local customSize = config.Size or UDim2.fromOffset(420, 340)
+	local customSize = config.Size or UDim2.fromOffset(450, 300)
 
 	local self = setmetatable({}, Window)
 
@@ -59,9 +59,7 @@ function Window.new(config)
 	local Main = Instance.new("Frame")
 	Main.Name = "MainFrame"
 
-	-- Imposta la dimensione fissa passata dallo script
 	Main.Size = customSize
-	-- Centro perfetto calcolato dinamicamente tramite gli offset negativi della metà dei pixel
 	Main.Position = UDim2.new(0.5, -Main.Size.X.Offset / 2, 0.5, -Main.Size.Y.Offset / 2)
 
 	Main.BackgroundColor3 = Theme.Colors.Background
@@ -87,11 +85,26 @@ function Window.new(config)
 
 	self.TopBar = TopBar
 
+	-- MODIFICATO: Se c'è un'icona, crea il componente ImageLabel nell'angolo della TopBar
+	local titleOffset = 15
+	if iconId then
+		local TopBarIcon = Instance.new("ImageLabel")
+		TopBarIcon.Name = "TopBarIcon"
+		TopBarIcon.Size = UDim2.fromOffset(20, 20)
+		TopBarIcon.Position = UDim2.new(0, 12, 0.5, -10)
+		TopBarIcon.BackgroundTransparency = 1
+		TopBarIcon.Image = "rbxassetid://" .. iconId
+		TopBarIcon.ImageColor3 = Theme.Colors.Accent -- Usa il colore verde acido del tuo tema
+		TopBarIcon.Parent = TopBar
+		
+		titleOffset = 40 -- Sposta il testo del titolo più a destra per non sovrapporsi all'icona
+	end
+
 	local Title = Instance.new("TextLabel")
 
 	Title.BackgroundTransparency = 1
-	Title.Position = UDim2.new(0,15,0,0)
-	Title.Size = UDim2.new(1,-30,1,0)
+	Title.Position = UDim2.new(0, titleOffset, 0, 0)
+	Title.Size = UDim2.new(1, -titleOffset - 15, 1, 0)
 
 	Title.Font = Theme.BoldFont
 	Title.TextColor3 = Theme.Colors.Text
@@ -105,41 +118,36 @@ function Window.new(config)
 	self.Title = Title
 
 	----------------------------------------------------
-	-- FLOAT BUTTON
+	-- FLOAT BUTTON (PULSANTE DI ATTIVAZIONE)
 	----------------------------------------------------
 
-	local Toggle
+	local Toggle = Instance.new("TextButton")
+	Toggle.Name = "Toggle"
+	Toggle.Size = UDim2.fromOffset(58, 58)
+	Toggle.Position = UDim2.new(0, 20, .35, 0)
+	Toggle.BackgroundColor3 = Theme.Colors.Background
+	Toggle.Parent = ScreenGui
 
-	if iconId and tostring(iconId) ~= "" then
+	Utils.Corner(Toggle, UDim.new(1, 0))
+	Utils.Stroke(Toggle, Theme.Colors.Accent, 1.5)
 
-		local id = tostring(iconId):match("%d+")
-
-		Toggle = Instance.new("ImageButton")
-		Toggle.Image = "rbxassetid://"..id
-		Toggle.ScaleType = Enum.ScaleType.Crop
-
+	-- MODIFICATO: Se c'è un'icona la mette al centro del pulsante rotondo, altrimenti mette il testo "SCO"
+	if iconId then
+		Toggle.Text = ""
+		local ButtonIcon = Instance.new("ImageLabel")
+		ButtonIcon.Name = "ButtonIcon"
+		ButtonIcon.Size = UDim2.fromOffset(28, 28)
+		ButtonIcon.Position = UDim2.new(0.5, -14, 0.5, -14)
+		ButtonIcon.BackgroundTransparency = 1
+		ButtonIcon.Image = "rbxassetid://" .. iconId
+		ButtonIcon.ImageColor3 = Theme.Colors.Text -- Icona bianca/chiara dentro il pulsante
+		ButtonIcon.Parent = Toggle
 	else
-
-		Toggle = Instance.new("TextButton")
 		Toggle.Text = "SCO"
-
 		Toggle.Font = Theme.BoldFont
 		Toggle.TextSize = 14
 		Toggle.TextColor3 = Theme.Colors.Accent
-
 	end
-
-	Toggle.Name = "Toggle"
-
-	Toggle.Size = UDim2.fromOffset(58,58)
-	Toggle.Position = UDim2.new(0,20,.35,0)
-
-	Toggle.BackgroundColor3 = Theme.Colors.Background
-
-	Toggle.Parent = ScreenGui
-
-	Utils.Corner(Toggle,UDim.new(1,0))
-	Utils.Stroke(Toggle,Theme.Colors.Accent,1.5)
 
 	self.Toggle = Toggle
 
@@ -155,26 +163,18 @@ function Window.new(config)
 	----------------------------------------------------
 
 	Toggle.Activated:Connect(function()
-
 		Main.Visible = not Main.Visible
-
 	end)
 
 	self.ToggleKey = toggleKey or Enum.KeyCode.RightControl
 
 	UserInputService.InputBegan:Connect(function(input,gp)
-
-		if gp then
-			return
-		end
-
+		if gp then return end
 		if input.KeyCode == self.ToggleKey then
-
 			Main.Visible = not Main.Visible
-
 		end
-
 	end)
+
 	----------------------------------------------------
 	-- SIDEBAR
 	----------------------------------------------------
@@ -198,14 +198,7 @@ function Window.new(config)
 	SideLayout.Parent = SideBar
 
 	SideLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-
-		SideBar.CanvasSize = UDim2.new(
-			0,
-			0,
-			0,
-			SideLayout.AbsoluteContentSize.Y + 10
-		)
-
+		SideBar.CanvasSize = UDim2.new(0, 0, 0, SideLayout.AbsoluteContentSize.Y + 10)
 	end)
 
 	self.SideBar = SideBar
@@ -217,12 +210,9 @@ function Window.new(config)
 	local Content = Instance.new("Frame")
 
 	Content.Name = "Content"
-
 	Content.Position = UDim2.new(0,150,0,45)
 	Content.Size = UDim2.new(1,-160,1,-55)
-
 	Content.BackgroundTransparency = 1
-
 	Content.Parent = Main
 
 	self.Content = Content
@@ -233,9 +223,7 @@ function Window.new(config)
 
 	self.Tabs = {}
 	self.Buttons = {}
-
 	self.ActiveTab = nil
-
 	self.ActiveDropdown = nil
 	self.ActiveDropdownContainer = nil
 
@@ -244,64 +232,32 @@ function Window.new(config)
 	----------------------------------------------------
 
 	function self:HideDropdown()
-
 		if self.ActiveDropdown then
-
 			self.ActiveDropdown.Visible = false
-
-			self.ActiveDropdown.Size = UDim2.new(
-				1,
-				0,
-				0,
-				0
-			)
-
+			self.ActiveDropdown.Size = UDim2.new(1, 0, 0, 0)
 			if self.ActiveDropdownContainer then
-
-				self.ActiveDropdownContainer.Size = UDim2.new(
-					0.95,
-					0,
-					0,
-					35
-				)
-
+				self.ActiveDropdownContainer.Size = UDim2.new(0.95, 0, 0, 35)
 			end
-
 			self.ActiveDropdown = nil
 			self.ActiveDropdownContainer = nil
-
 		end
-
 	end
 
 	function self:SelectTab(name)
-
 		self:HideDropdown()
-
 		for tabName,frame in pairs(self.Tabs) do
-
 			frame.Visible = (tabName == name)
-
 		end
-
 		for btnName,button in pairs(self.Buttons) do
-
 			if btnName == name then
-
 				button.BackgroundColor3 = Theme.Colors.Accent
 				button.TextColor3 = Color3.new()
-
 			else
-
 				button.BackgroundColor3 = Theme.Colors.Secondary
 				button.TextColor3 = Theme.Colors.TextDark
-
 			end
-
 		end
-
 		self.ActiveTab = name
-
 	end
 
 	----------------------------------------------------
@@ -309,11 +265,8 @@ function Window.new(config)
 	----------------------------------------------------
 
 	function self:CreateTab(name)
-
 		local tabFrame = Instance.new("ScrollingFrame")
-
 		tabFrame.Name = name
-
 		tabFrame.Size = UDim2.new(1,0,1,0)
 		tabFrame.CanvasSize = UDim2.new()
 		tabFrame.BackgroundTransparency = 1
@@ -321,7 +274,6 @@ function Window.new(config)
 		tabFrame.ScrollBarThickness = 3
 		tabFrame.ScrollBarImageColor3 = Theme.Colors.Accent
 		tabFrame.Visible = false
-
 		tabFrame.Parent = self.Content
 
 		local layout = Instance.new("UIListLayout")
@@ -330,49 +282,34 @@ function Window.new(config)
 		layout.Parent = tabFrame
 
 		layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-
-			tabFrame.CanvasSize = UDim2.new(
-				0,
-				0,
-				0,
-				layout.AbsoluteContentSize.Y + 10
-			)
-
+			tabFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
 		end)
 
 		local tabButton = Instance.new("TextButton")
-
 		tabButton.Size = UDim2.new(1,-10,0,32)
 		tabButton.BackgroundColor3 = Theme.Colors.Secondary
-
 		tabButton.Text = "   "..name
 		tabButton.TextColor3 = Theme.Colors.TextDark
 		tabButton.TextXAlignment = Enum.TextXAlignment.Left
 		tabButton.Font = Theme.SemiBoldFont
 		tabButton.TextSize = 13
-
 		tabButton.Parent = self.SideBar
 
 		Utils.Corner(tabButton)
 		Utils.Stroke(tabButton,Theme.Colors.Stroke)
 
 		tabButton.Activated:Connect(function()
-
 			self:SelectTab(name)
-
 		end)
 
 		self.Tabs[name] = tabFrame
 		self.Buttons[name] = tabButton
 
 		if not self.ActiveTab then
-
 			self:SelectTab(name)
-
 		end
 
 		return tabFrame
-
 	end
 
 	----------------------------------------------------
@@ -380,15 +317,12 @@ function Window.new(config)
 	----------------------------------------------------
 
 	function self:Destroy()
-
 		if self.Gui then
 			self.Gui:Destroy()
 		end
-
 	end
 
 	return self
-
 end
 
 return Window
