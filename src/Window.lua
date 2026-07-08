@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX Window Engine
+-- ScorpioX Window Engine (Modificato per Dimensioni Compatte)
 --==============================================================================
 
 local Players = game:GetService("Players")
@@ -45,18 +45,20 @@ function Window.new(title, iconId, toggleKey)
 	self.Gui = ScreenGui
 
 	----------------------------------------------------
-	-- MAIN
+	-- MAIN (Dimensioni modificate per renderlo più stretto)
 	----------------------------------------------------
 
 	local Main = Instance.new("Frame")
 
 	Main.Name = "MainFrame"
-	Main.Size = UDim2.fromOffset(520,340)
-	Main.Position = UDim2.new(.5,-260,.5,-170)
+	-- MODIFICATO: Ridotta la larghezza da 520 a 440 per un look più verticale e quadrato
+	Main.Size = UDim2.fromOffset(440, 340)
+	Main.Position = UDim2.new(.5, -220, .5, -170) -- Centrato perfettamente in base alla nuova larghezza
 
 	if UserInputService.TouchEnabled then
-		Main.Size = UDim2.new(.92,0,.78,0)
-		Main.Position = UDim2.new(.04,0,.11,0)
+		-- MODIFICATO: Ridotta la larghezza anche su mobile (.75 invece di .92) per imitare la seconda foto
+		Main.Size = UDim2.new(.75, 0, .78, 0)
+		Main.Position = UDim2.new(.125, 0, .11, 0)
 	end
 
 	Main.BackgroundColor3 = Theme.Colors.Background
