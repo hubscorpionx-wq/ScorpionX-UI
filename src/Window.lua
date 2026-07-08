@@ -157,17 +157,19 @@ function Window.new(config)
 	Utils.MakeDraggable(Toggle)
 
 	----------------------------------------------------
-	-- TOGGLE MENU
+	-- TOGGLE MENU (Fix dinamico definitivo)
 	----------------------------------------------------
 
 	Toggle.Activated:Connect(function()
 		Main.Visible = not Main.Visible
 	end)
 
-	-- FIX CRITICO: Controlla dinamicamente self.ToggleKey anziché una variabile fissa isolata
+	-- Invece di controllare una variabile fissa, legge self.ToggleKey a ogni pressione!
 	UserInputService.InputBegan:Connect(function(input, gp)
 		if gp then return end
-		if input.KeyCode == self.ToggleKey then
+		
+		-- Legge l'istanza della finestra per vedere se Library o l'utente hanno cambiato il ToggleKey
+		if input.KeyCode == (self.ToggleKey or Window.ToggleKey) then
 			Main.Visible = not Main.Visible
 		end
 	end)
