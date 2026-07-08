@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX Window Engine (Layout: Icona -> Titolo -> Punto -> Sottotitolo)
+-- ScorpioX Window Engine (Completo - Layout Corretto)
 --==============================================================================
 
 local Players = game:GetService("Players")
@@ -15,7 +15,7 @@ Window.__index = Window
 
 function Window.new(config)
 	config = config or {}
-	local title = config.Title or "SCORPION X HUB"
+	local title = config.Title or "SCORPIO X"
 	
 	local iconId = tostring(config.Icon or ""):match("%d+")
 	
@@ -83,31 +83,33 @@ function Window.new(config)
 
 	self.TopBar = TopBar
 
-	-- CONTENITORE PRINCIPALE DELLA TOPBAR CON LAYOUT ORIZZONTALE
+	-- CONTENITORE PRINCIPALE DELLA TOPBAR CON LAYOUT ORIZZONTALE CORRETTO
 	local TopBarContainer = Instance.new("Frame")
 	TopBarContainer.Name = "TopBarContainer"
 	TopBarContainer.BackgroundTransparency = 1
-	TopBarContainer.Position = UDim2.new(0, 12, 0, 0) -- Margine sinistro iniziale
+	TopBarContainer.Position = UDim2.new(0, 12, 0, 0)
 	TopBarContainer.Size = UDim2.new(1, -24, 1, 0)
 	TopBarContainer.Parent = TopBar
 
 	local TopBarLayout = Instance.new("UIListLayout")
 	TopBarLayout.FillDirection = Enum.FillDirection.Horizontal
 	TopBarLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-	TopBarLayout.Padding = UDim.new(0, 8) -- Spazio tra Icona, Titolo, Punto e Sottotitolo
+	TopBarLayout.SortOrder = Enum.SortOrder.LayoutOrder -- Forza l'uso del LayoutOrder numerico
+	TopBarLayout.Padding = UDim.new(0, 8)
 	TopBarLayout.Parent = TopBarContainer
 
-	-- 1. ICONA (Se presente nella configurazione, appare per prima)
+	-- 1. ICONA (LayoutOrder = 1)
 	if iconId then
 		local TopBarIcon = Instance.new("ImageLabel")
 		TopBarIcon.Name = "TopBarIcon"
 		TopBarIcon.Size = UDim2.fromOffset(24, 24) -- Dimensione ingrandita
 		TopBarIcon.BackgroundTransparency = 1
 		TopBarIcon.Image = "rbxassetid://" .. iconId
+		TopBarIcon.LayoutOrder = 1
 		TopBarIcon.Parent = TopBarContainer
 	end
 
-	-- 2. TITOLO PRINCIPALE (Appare subito dopo l'icona)
+	-- 2. TITOLO PRINCIPALE (LayoutOrder = 2)
 	local Title = Instance.new("TextLabel")
 	Title.Name = "TitleLabel"
 	Title.BackgroundTransparency = 1
@@ -118,35 +120,38 @@ function Window.new(config)
 	Title.TextXAlignment = Enum.TextXAlignment.Left
 	Title.TextSize = 15
 	Title.Text = tostring(title):upper()
+	Title.LayoutOrder = 2
 	Title.Parent = TopBarContainer
 
 	self.Title = Title
 
 	-- CONTROLLO SE IL SOTTOTITOLO ESISTE NELLA CONFIGURAZIONE
 	if config.Subtitle and config.Subtitle ~= "" then
-		-- 3. IL PUNTO SEPARATORE (Appare dopo il titolo)
+		-- 3. IL PUNTO SEPARATORE (LayoutOrder = 3)
 		local DotSeparator = Instance.new("TextLabel")
 		DotSeparator.Name = "DotSeparator"
 		DotSeparator.BackgroundTransparency = 1
 		DotSeparator.AutomaticSize = Enum.AutomaticSize.X
 		DotSeparator.Size = UDim2.new(0, 0, 1, 0)
 		DotSeparator.Font = Enum.Font.SourceSansBold
-		DotSeparator.TextColor3 = Color3.fromRGB(120, 120, 120) -- Colore grigio scuro
+		DotSeparator.TextColor3 = Color3.fromRGB(120, 120, 120)
 		DotSeparator.TextSize = 14
 		DotSeparator.Text = "•"
+		DotSeparator.LayoutOrder = 3
 		DotSeparator.Parent = TopBarContainer
 
-		-- 4. SOTTOTITOLO (Appare alla fine, dopo il punto)
+		-- 4. SOTTOTITOLO (LayoutOrder = 4)
 		local Subtitle = Instance.new("TextLabel")
 		Subtitle.Name = "SubtitleLabel"
 		Subtitle.BackgroundTransparency = 1
 		Subtitle.AutomaticSize = Enum.AutomaticSize.X
 		Subtitle.Size = UDim2.new(0, 0, 1, 0)
 		Subtitle.Font = Theme.SemiBoldFont or Enum.Font.SourceSans
-		Subtitle.TextColor3 = Color3.fromRGB(160, 160, 160) -- Colore grigio chiaro
+		Subtitle.TextColor3 = Color3.fromRGB(160, 160, 160)
 		Subtitle.TextXAlignment = Enum.TextXAlignment.Left
 		Subtitle.TextSize = 12
 		Subtitle.Text = tostring(config.Subtitle)
+		Subtitle.LayoutOrder = 4
 		Subtitle.Parent = TopBarContainer
 		
 		self.Subtitle = Subtitle
