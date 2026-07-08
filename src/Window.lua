@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX Window Engine (Icone e Proporzioni Fixed)
+-- ScorpioX Window Engine (Direct ImageButton & Theme Fix)
 --==============================================================================
 
 local Players = game:GetService("Players")
@@ -7,8 +7,7 @@ local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 
 local Modules = getgenv().ScorpioXModules
-
-local Theme = Modules.Theme
+local Theme = Modules.Theme or require(Modules.Theme) -- Fix per evitare il crash 'index nil with Theme'
 local Utils = Modules.Utils
 
 local Window = {}
@@ -18,7 +17,7 @@ function Window.new(config)
 	config = config or {}
 	local title = config.Title or "SCORPIO X"
 	
-	-- Gestione ID Icona (Prende solo i numeri)
+	-- Pulisce l'ID prendendo solo i numeri
 	local iconId = tostring(config.Icon or ""):match("%d+")
 	local toggleKey = config.ToggleKey or Enum.KeyCode.RightControl
 	
@@ -85,7 +84,7 @@ function Window.new(config)
 
 	self.TopBar = TopBar
 
-	-- Icona TopBar
+	-- Icona della TopBar
 	local titleOffset = 15
 	if iconId then
 		local TopBarIcon = Instance.new("ImageLabel")
@@ -120,7 +119,29 @@ function Window.new(config)
 	-- FLOAT BUTTON (PULSANTE DI ATTIVAZIONE)
 	----------------------------------------------------
 
-	local Toggle = Instance.new("TextButton")
+	local Toggle
+
+	if iconId then
+		-- MIGLIORATO: Usiamo direttamente un ImageButton. L'icona è il pulsante stesso!
+		Toggle = Instance.new("ImageButton")
+		Toggle.Image = "rbxassetid://" .. iconId
+		
+		-- Aggiungiamo il padding per evitare che l'icona tocchi i bordi del cerchio
+		local Padding = Instance.new("UIPadding")
+		Padding.PaddingTop = UDim.new(0, 10)
+		Padding.PaddingBottom = UDim.new(0, 10)
+		Padding.PaddingLeft = UDim.new(0, 10)
+		Padding.PaddingRight = UDim.new(0, 10)
+		Padding.Parent = Toggle
+	else
+		-- Se non c'è l'icona creiamo il classico TextButton con "SCO"
+		Toggle = Instance.new("TextButton")
+		Toggle.Text = "SCO"
+		Toggle.Font = Theme.BoldFont
+		Toggle.TextSize = 14
+		Toggle.TextColor3 = Theme.Colors.Accent
+	end
+
 	Toggle.Name = "Toggle"
 	Toggle.Size = UDim2.fromOffset(58, 58)
 	Toggle.Position = UDim2.new(0, 20, .35, 0)
@@ -129,32 +150,6 @@ function Window.new(config)
 
 	Utils.Corner(Toggle, UDim.new(1, 0))
 	Utils.Stroke(Toggle, Theme.Colors.Accent, 1.5)
-
-	-- FIX: Se c'è l'icona, forziamo il testo vuoto per non sovrapporlo
-	if iconId then
-		Toggle.Text = ""
-		
-		local ButtonIcon = Instance.new("ImageLabel")
-		ButtonIcon.Name = "ButtonIcon"
-		ButtonIcon.Size = UDim2.fromScale(1, 1) -- Occupa interamente lo spazio del pulsante
-		ButtonIcon.Position = UDim2.new(0, 0, 0, 0)
-		ButtonIcon.BackgroundTransparency = 1
-		ButtonIcon.Image = "rbxassetid://" .. iconId
-		ButtonIcon.Parent = Toggle
-
-		-- Padding interno per non far toccare i bordi all'immagine
-		local Padding = Instance.new("UIPadding")
-		Padding.PaddingTop = UDim.new(0, 10)
-		Padding.PaddingBottom = UDim.new(0, 10)
-		Padding.PaddingLeft = UDim.new(0, 10)
-		Padding.PaddingRight = UDim.new(0, 10)
-		Padding.Parent = Toggle
-	else
-		Toggle.Text = "SCO"
-		Toggle.Font = Theme.BoldFont
-		Toggle.TextSize = 14
-		Toggle.TextColor3 = Theme.Colors.Accent
-	end
 
 	self.Toggle = Toggle
 
