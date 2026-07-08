@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX Window Engine (Direct ImageButton & Theme Fix)
+-- ScorpioX Window Engine (Dynamic Toggle Key Fix)
 --==============================================================================
 
 local Players = game:GetService("Players")
@@ -7,7 +7,7 @@ local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 
 local Modules = getgenv().ScorpioXModules
-local Theme = Modules.Theme or require(Modules.Theme) -- Fix per evitare il crash 'index nil with Theme'
+local Theme = Modules.Theme or require(Modules.Theme)
 local Utils = Modules.Utils
 
 local Window = {}
@@ -17,13 +17,13 @@ function Window.new(config)
 	config = config or {}
 	local title = config.Title or "SCORPIO X"
 	
-	-- Pulisce l'ID prendendo solo i numeri
 	local iconId = tostring(config.Icon or ""):match("%d+")
-	local toggleKey = config.ToggleKey or Enum.KeyCode.RightControl
 	
-	local customSize = config.Size or UDim2.fromOffset(450, 300)
-
+	-- Salviamo il ToggleKey all'interno di self così possiamo modificarlo dinamicamente
 	local self = setmetatable({}, Window)
+	self.ToggleKey = config.ToggleKey or Enum.KeyCode.RightControl
+
+	local customSize = config.Size or UDim2.fromOffset(450, 300)
 
 	local player = Players.LocalPlayer
 	local playerGui = player:WaitForChild("PlayerGui")
@@ -84,7 +84,6 @@ function Window.new(config)
 
 	self.TopBar = TopBar
 
-	-- Icona della TopBar
 	local titleOffset = 15
 	if iconId then
 		local TopBarIcon = Instance.new("ImageLabel")
@@ -122,11 +121,9 @@ function Window.new(config)
 	local Toggle
 
 	if iconId then
-		-- MIGLIORATO: Usiamo direttamente un ImageButton. L'icona è il pulsante stesso!
 		Toggle = Instance.new("ImageButton")
 		Toggle.Image = "rbxassetid://" .. iconId
 		
-		-- Aggiungiamo il padding per evitare che l'icona tocchi i bordi del cerchio
 		local Padding = Instance.new("UIPadding")
 		Padding.PaddingTop = UDim.new(0, 10)
 		Padding.PaddingBottom = UDim.new(0, 10)
@@ -134,7 +131,6 @@ function Window.new(config)
 		Padding.PaddingRight = UDim.new(0, 10)
 		Padding.Parent = Toggle
 	else
-		-- Se non c'è l'icona creiamo il classico TextButton con "SCO"
 		Toggle = Instance.new("TextButton")
 		Toggle.Text = "SCO"
 		Toggle.Font = Theme.BoldFont
@@ -168,9 +164,8 @@ function Window.new(config)
 		Main.Visible = not Main.Visible
 	end)
 
-	self.ToggleKey = toggleKey or Enum.KeyCode.RightControl
-
-	UserInputService.InputBegan:Connect(function(input,gp)
+	-- FIX CRITICO: Controlla dinamicamente self.ToggleKey anziché una variabile fissa isolata
+	UserInputService.InputBegan:Connect(function(input, gp)
 		if gp then return end
 		if input.KeyCode == self.ToggleKey then
 			Main.Visible = not Main.Visible
