@@ -1,8 +1,7 @@
---==============================================================================
--- ScorpioX Elements
---==============================================================================
+local Modules = getgenv().ScorpioXModules
 
-return function(Theme, Utils)
+local Theme = Modules.Theme
+local Utils = Modules.Utils
 
 local Elements = {}
 
@@ -603,5 +602,3 @@ end
 
 
 return Elements
-
-end
