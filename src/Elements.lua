@@ -38,7 +38,7 @@ function Elements.Section(parent, text)
 	label.TextColor3 = Theme.Colors.Accent
 	label.TextSize = 11
 	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.Text = ": ̗̀➛  " .. string.upper(text)
+	label.Text = "➤ " .. string.upper(text)
 	label.Parent = container
 
 	return container
