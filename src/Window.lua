@@ -14,16 +14,15 @@ local Utils = Modules.Utils
 local Window = {}
 Window.__index = Window
 
--- MODIFICATO: Accetta la tabella config invece dei singoli parametri isolati
+-- MODIFICATO: Accetta l'intera tabella config
 function Window.new(config)
 	config = config or {}
 	local title = config.Title or "SCORPIO X"
 	local iconId = config.Icon or ""
 	local toggleKey = config.ToggleKey or Enum.KeyCode.RightControl
 	
-	-- Dimensioni di default se non inserite nello script di test
-	local customSize = config.Size or UDim2.fromOffset(440, 340)
-	local customTouchSize = config.TouchSize or UDim2.new(.58, 0, .75, 0) -- Impostato di base a 0.58 (molto più stretto)
+	-- Unica impostazione pixel per entrambi (Larghezza, Altezza)
+	local customSize = config.Size or UDim2.fromOffset(420, 340)
 
 	local self = setmetatable({}, Window)
 
@@ -60,15 +59,10 @@ function Window.new(config)
 	local Main = Instance.new("Frame")
 	Main.Name = "MainFrame"
 
-	-- Impostazione PC (centrata matematicamente sulla larghezza pixel dell'offset)
+	-- Imposta la dimensione fissa passata dallo script
 	Main.Size = customSize
-	Main.Position = UDim2.new(.5, -Main.Size.X.Offset/2, .5, -Main.Size.Y.Offset/2)
-
-	-- Impostazione Mobile / Touch (centrata dinamicamente sullo Scale)
-	if UserInputService.TouchEnabled then
-		Main.Size = customTouchSize
-		Main.Position = UDim2.new(.5 - (Main.Size.X.Scale/2), 0, .5 - (Main.Size.Y.Scale/2), 0)
-	end
+	-- Centro perfetto calcolato dinamicamente tramite gli offset negativi della metà dei pixel
+	Main.Position = UDim2.new(0.5, -Main.Size.X.Offset / 2, 0.5, -Main.Size.Y.Offset / 2)
 
 	Main.BackgroundColor3 = Theme.Colors.Background
 	Main.Parent = ScreenGui
