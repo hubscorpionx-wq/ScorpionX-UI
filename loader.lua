@@ -1,23 +1,15 @@
---==============================================================================
 -- ScorpioX Loader
---==============================================================================
 
-local BASE = "https://raw.githubusercontent.com/hubscorpionx-wq/ScorpionX-UI/main/src/"
+local BASE_URL = "https://raw.githubusercontent.com/hubscorpionx-wq/ScorpionX-UI/main/src/"
 
-local function Get(name)
-	return loadstring(game:HttpGet(BASE .. name .. ".lua"))()
+local function LoadModule(name)
+    return loadstring(game:HttpGet(BASE_URL .. name .. ".lua"))()
 end
 
--- Core
-local Theme = Get("Theme")
-local Utils = Get("Utils")
+local Theme = LoadModule("Theme")
+local Utils = LoadModule("Utils")
+local Window = LoadModule("Window")(Theme, Utils)
+local Notifications = LoadModule("Notifications")(Theme, Utils)
+local Elements = LoadModule("Elements")(Theme, Utils)
 
--- Modules
-local Window = Get("Window")(Theme, Utils)
-local Elements = Get("Elements")(Theme, Utils)
-local Notifications = Get("Notifications")(Theme, Utils)
-
--- Library
-local Library = Get("init")(Window, Elements, Notifications)
-
-return Library
+return LoadModule("init")(Window, Elements, Notifications)
