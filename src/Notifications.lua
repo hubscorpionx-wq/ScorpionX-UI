@@ -4,8 +4,10 @@
 
 local TweenService = game:GetService("TweenService")
 
-local Theme = require(script.Parent.Theme)
-local Utils = require(script.Parent.Utils)
+local Modules = getgenv().ScorpioXModules
+
+local Theme = Modules.Theme
+local Utils = Modules.Utils
 
 local Notifications = {}
 
