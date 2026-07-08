@@ -1,13 +1,14 @@
 --==============================================================================
--- ScorpioX Modern Elements Engine (Ripristinato)
+-- ScorpioX Modern Elements Engine (Premium Dark/Neon UI - Fix)
 --==============================================================================
 
 local Modules = getgenv().ScorpioXModules
-local Theme = Modules.Theme
+local Theme = Modules.Theme -- Ripristinato come l'originale funzionante
 local Utils = Modules.Utils
 
 local Elements = {}
 
+-- Funzione helper per creare i container degli elementi con stile coerente
 local function CreateContainer(parent, height)
 	local frame = Instance.new("Frame")
 	frame.Size = UDim2.new(0.95, 0, 0, height)
@@ -21,6 +22,9 @@ local function CreateContainer(parent, height)
 	return frame
 end
 
+--------------------------------------------------------
+-- SECTION
+--------------------------------------------------------
 function Elements.Section(parent, text)
 	local container = Instance.new("Frame")
 	container.Size = UDim2.new(0.95, 0, 0, 30)
@@ -40,6 +44,9 @@ function Elements.Section(parent, text)
 	return container
 end
 
+--------------------------------------------------------
+-- PARAGRAPH
+--------------------------------------------------------
 function Elements.Paragraph(parent, title, body)
 	local frame = CreateContainer(parent, 65)
 
@@ -70,6 +77,9 @@ function Elements.Paragraph(parent, title, body)
 	return frame
 end
 
+--------------------------------------------------------
+-- LABEL
+--------------------------------------------------------
 function Elements.Label(parent, text)
 	local container = Instance.new("Frame")
 	container.Size = UDim2.new(0.95, 0, 0, 22)
@@ -90,6 +100,9 @@ function Elements.Label(parent, text)
 	return container
 end
 
+--------------------------------------------------------
+-- SEPARATOR
+--------------------------------------------------------
 function Elements.Separator(parent)
 	local container = Instance.new("Frame")
 	container.Size = UDim2.new(0.95, 0, 0, 10)
@@ -106,6 +119,9 @@ function Elements.Separator(parent)
 	return container
 end
 
+--------------------------------------------------------
+-- BUTTON
+--------------------------------------------------------
 function Elements.Button(parent, text, callback)
 	local frame = CreateContainer(parent, 36)
 	
@@ -143,6 +159,9 @@ function Elements.Button(parent, text, callback)
 	return frame
 end
 
+--------------------------------------------------------
+-- TOGGLE
+--------------------------------------------------------
 function Elements.Toggle(parent, title, default, callback)
 	local frame = CreateContainer(parent, 44)
 
@@ -209,6 +228,9 @@ function Elements.Toggle(parent, title, default, callback)
 	return frame
 end
 
+--------------------------------------------------------
+-- SLIDER
+--------------------------------------------------------
 function Elements.Slider(parent, title, min, max, default, callback)
 	local UIS = game:GetService("UserInputService")
 	local frame = CreateContainer(parent, 52)
@@ -239,7 +261,7 @@ function Elements.Slider(parent, title, min, max, default, callback)
 	bar.Position = UDim2.new(0, 12, 0.7, 0)
 	bar.BackgroundColor3 = Theme.Colors.Stroke
 	bar.BorderSizePixel = 0
-	bar.Parent = bar
+	bar.Parent = frame
 
 	Utils.Corner(bar)
 
@@ -284,6 +306,9 @@ function Elements.Slider(parent, title, min, max, default, callback)
 	return frame
 end
 
+--------------------------------------------------------
+-- TEXTBOX
+--------------------------------------------------------
 function Elements.TextBox(parent, title, placeholder, callback)
 	local frame = CreateContainer(parent, 44)
 
@@ -321,6 +346,9 @@ function Elements.TextBox(parent, title, placeholder, callback)
 	return frame
 end
 
+--------------------------------------------------------
+-- DROPDOWN
+--------------------------------------------------------
 function Elements.Dropdown(parent, title, options, callback)
 	local frame = CreateContainer(parent, 40)
 	frame.ClipsDescendants = true
@@ -400,6 +428,9 @@ function Elements.Dropdown(parent, title, options, callback)
 	return frame
 end
 
+--------------------------------------------------------
+-- KEYBIND
+--------------------------------------------------------
 function Elements.Keybind(parent, title, defaultKey, callback)
 	local UIS = game:GetService("UserInputService")
 	local frame = CreateContainer(parent, 40)
@@ -446,6 +477,7 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 				current = input.KeyCode
 				bind.Text = current.Name
 			end
+		-- FIX: Questo invia l'input aggiornato alla callback dell'utente quando viene premuto!
 		elseif input.KeyCode == current then
 			if callback then task.spawn(callback, current) end
 		end
