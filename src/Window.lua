@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX Window Engine (Subtitle Update)
+-- ScorpioX Window Engine (Subtitle After Title with Dot Fix)
 --==============================================================================
 
 local Players = game:GetService("Players")
@@ -96,7 +96,7 @@ function Window.new(config)
 		titleOffset = 40
 	end
 
-	-- CONTENITORE PER ALLINEARE TITOLO E SOTTOTITOLO
+	-- CONTENITORE PER ALLINEARE GLI ELEMENTI DEL TITOLO
 	local TitleContainer = Instance.new("Frame")
 	TitleContainer.Name = "TitleContainer"
 	TitleContainer.BackgroundTransparency = 1
@@ -107,16 +107,15 @@ function Window.new(config)
 	local TitleLayout = Instance.new("UIListLayout")
 	TitleLayout.FillDirection = Enum.FillDirection.Horizontal
 	TitleLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-	TitleLayout.Padding = UDim.new(0, 8) -- Spazio tra Titolo e Sottotitolo
+	TitleLayout.Padding = UDim.new(0, 6) -- Spazio fisso tra gli elementi
 	TitleLayout.Parent = TitleContainer
 
-	-- TITOLO PRINCIPALE
+	-- 1. TITOLO PRINCIPALE (Primo elemento del layout)
 	local Title = Instance.new("TextLabel")
 	Title.Name = "TitleLabel"
 	Title.BackgroundTransparency = 1
 	Title.AutomaticSize = Enum.AutomaticSize.X
 	Title.Size = UDim2.new(0, 0, 1, 0)
-
 	Title.Font = Theme.BoldFont
 	Title.TextColor3 = Theme.Colors.Text
 	Title.TextXAlignment = Enum.TextXAlignment.Left
@@ -126,17 +125,30 @@ function Window.new(config)
 
 	self.Title = Title
 
-	-- SOTTOTITOLO (Aggiunto dinamicamente se presente nella config)
+	-- CONTROLLO SE IL SOTTOTITOLO ESISTE NELLA CONFIGURAZIONE
 	if config.Subtitle and config.Subtitle ~= "" then
+		-- 2. IL PUNTO SEPARATORE (Secondo elemento del layout)
+		local DotSeparator = Instance.new("TextLabel")
+		DotSeparator.Name = "DotSeparator"
+		DotSeparator.BackgroundTransparency = 1
+		DotSeparator.AutomaticSize = Enum.AutomaticSize.X
+		DotSeparator.Size = UDim2.new(0, 0, 1, 0)
+		DotSeparator.Font = Enum.Font.SourceSansBold
+		DotSeparator.TextColor3 = Color3.fromRGB(120, 120, 120) -- Grigio scuro per il punto
+		DotSeparator.TextSize = 14
+		DotSeparator.Text = "•"
+		DotSeparator.Parent = TitleContainer
+
+		-- 3. SOTTOTITOLO (Terzo elemento del layout, posizionato dopo il punto)
 		local Subtitle = Instance.new("TextLabel")
 		Subtitle.Name = "SubtitleLabel"
 		Subtitle.BackgroundTransparency = 1
 		Subtitle.AutomaticSize = Enum.AutomaticSize.X
 		Subtitle.Size = UDim2.new(0, 0, 1, 0)
 		Subtitle.Font = Theme.SemiBoldFont or Enum.Font.SourceSans
-		Subtitle.TextColor3 = Color3.fromRGB(160, 160, 160) -- Colore Grigio
+		Subtitle.TextColor3 = Color3.fromRGB(160, 160, 160) -- Grigio chiaro
 		Subtitle.TextXAlignment = Enum.TextXAlignment.Left
-		Subtitle.TextSize = 12 -- Più piccolo (Titolo è 15)
+		Subtitle.TextSize = 12
 		Subtitle.Text = tostring(config.Subtitle)
 		Subtitle.Parent = TitleContainer
 		
