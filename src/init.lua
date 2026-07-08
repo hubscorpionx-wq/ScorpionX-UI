@@ -1,14 +1,27 @@
+local Window = require(script.Window)
+local Elements = require(script.Elements)
+local Notifications = require(script.Notifications)
+
 local Library = {}
 
-Library.Theme = require(script.Theme)
-Library.Window = require(script.Window)
-Library.Tabs = require(script.Tabs)
-Library.Elements = require(script.Elements)
-Library.Notifications = require(script.Notifications)
-Library.Utils = require(script.Utils)
+function Library:CreateWindow(title, iconId, toggleKey)
+	local window = Window.new(title, iconId, toggleKey)
 
-function Library:CreateWindow(options)
-    return self.Window.new(options)
+	local api = {}
+
+	function api:CreateTab(name)
+		return Elements.CreateTab(window, name)
+	end
+
+	function api:Notify(title, text, duration)
+		Notifications.Notify(window.Gui, title, text, duration)
+	end
+
+	function api:Destroy()
+		window:Destroy()
+	end
+
+	return api
 end
 
 return Library
