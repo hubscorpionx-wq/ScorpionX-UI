@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX Window Engine (Dynamic Toggle Key Fix)
+-- ScorpioX Window Engine (Subtitle Update)
 --==============================================================================
 
 local Players = game:GetService("Players")
@@ -19,7 +19,6 @@ function Window.new(config)
 	
 	local iconId = tostring(config.Icon or ""):match("%d+")
 	
-	-- Salviamo il ToggleKey all'interno di self così possiamo modificarlo dinamicamente
 	local self = setmetatable({}, Window)
 	self.ToggleKey = config.ToggleKey or Enum.KeyCode.RightControl
 
@@ -97,22 +96,52 @@ function Window.new(config)
 		titleOffset = 40
 	end
 
-	local Title = Instance.new("TextLabel")
+	-- CONTENITORE PER ALLINEARE TITOLO E SOTTOTITOLO
+	local TitleContainer = Instance.new("Frame")
+	TitleContainer.Name = "TitleContainer"
+	TitleContainer.BackgroundTransparency = 1
+	TitleContainer.Position = UDim2.new(0, titleOffset, 0, 0)
+	TitleContainer.Size = UDim2.new(1, -titleOffset - 15, 1, 0)
+	TitleContainer.Parent = TopBar
 
+	local TitleLayout = Instance.new("UIListLayout")
+	TitleLayout.FillDirection = Enum.FillDirection.Horizontal
+	TitleLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	TitleLayout.Padding = UDim.new(0, 8) -- Spazio tra Titolo e Sottotitolo
+	TitleLayout.Parent = TitleContainer
+
+	-- TITOLO PRINCIPALE
+	local Title = Instance.new("TextLabel")
+	Title.Name = "TitleLabel"
 	Title.BackgroundTransparency = 1
-	Title.Position = UDim2.new(0, titleOffset, 0, 0)
-	Title.Size = UDim2.new(1, -titleOffset - 15, 1, 0)
+	Title.AutomaticSize = Enum.AutomaticSize.X
+	Title.Size = UDim2.new(0, 0, 1, 0)
 
 	Title.Font = Theme.BoldFont
 	Title.TextColor3 = Theme.Colors.Text
 	Title.TextXAlignment = Enum.TextXAlignment.Left
 	Title.TextSize = 15
-
 	Title.Text = tostring(title):upper()
-
-	Title.Parent = TopBar
+	Title.Parent = TitleContainer
 
 	self.Title = Title
+
+	-- SOTTOTITOLO (Aggiunto dinamicamente se presente nella config)
+	if config.Subtitle and config.Subtitle ~= "" then
+		local Subtitle = Instance.new("TextLabel")
+		Subtitle.Name = "SubtitleLabel"
+		Subtitle.BackgroundTransparency = 1
+		Subtitle.AutomaticSize = Enum.AutomaticSize.X
+		Subtitle.Size = UDim2.new(0, 0, 1, 0)
+		Subtitle.Font = Theme.SemiBoldFont or Enum.Font.SourceSans
+		Subtitle.TextColor3 = Color3.fromRGB(160, 160, 160) -- Colore Grigio
+		Subtitle.TextXAlignment = Enum.TextXAlignment.Left
+		Subtitle.TextSize = 12 -- Più piccolo (Titolo è 15)
+		Subtitle.Text = tostring(config.Subtitle)
+		Subtitle.Parent = TitleContainer
+		
+		self.Subtitle = Subtitle
+	end
 
 	----------------------------------------------------
 	-- FLOAT BUTTON (PULSANTE DI ATTIVAZIONE)
@@ -164,7 +193,6 @@ function Window.new(config)
 		Main.Visible = not Main.Visible
 	end)
 
-	-- FIX CRITICO: Controlla dinamicamente self.ToggleKey anziché una variabile fissa isolata
 	UserInputService.InputBegan:Connect(function(input, gp)
 		if gp then return end
 		if input.KeyCode == self.ToggleKey then
