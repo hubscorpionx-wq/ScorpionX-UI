@@ -80,9 +80,7 @@ Theme.ElementPadding = 6
 -- WINDOW
 ----------------------------------------------------
 
-Theme.WindowSize = UDim2.fromOffset(520,340)
-Theme.MobileWindowSize = UDim2.new(.92,0,.78,0)
-
+Theme.WindowSize = UDim2.fromOffset(450, 300)
 ----------------------------------------------------
 -- ANIMATIONS
 ----------------------------------------------------
