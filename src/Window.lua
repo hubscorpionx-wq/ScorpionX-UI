@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX Window Engine (Dynamic Toggle Key Fix)
+-- ScorpioX Window Engine (Dynamic Toggle Key Fix - Definitive)
 --==============================================================================
 
 local Players = game:GetService("Players")
@@ -7,7 +7,7 @@ local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 
 local Modules = getgenv().ScorpioXModules
-local Theme = Modules.Theme or require(Modules.Theme)
+local Theme = Modules.Theme
 local Utils = Modules.Utils
 
 local Window = {}
@@ -19,8 +19,9 @@ function Window.new(config)
 	
 	local iconId = tostring(config.Icon or ""):match("%d+")
 	
-	-- Salviamo il ToggleKey all'interno di self così possiamo modificarlo dinamicamente
 	local self = setmetatable({}, Window)
+	
+	-- Questa riga memorizza il tasto nell'istanza della finestra creata
 	self.ToggleKey = config.ToggleKey or Enum.KeyCode.RightControl
 
 	local customSize = config.Size or UDim2.fromOffset(450, 300)
@@ -64,8 +65,8 @@ function Window.new(config)
 	Main.BackgroundColor3 = Theme.Colors.Background
 	Main.Parent = ScreenGui
 
-	Utils.Corner(Main,Theme.WindowCorner)
-	Utils.Stroke(Main,Theme.Colors.Accent,1.5)
+	Utils.Corner(Main)
+	Utils.Stroke(Main, Theme.Colors.Accent)
 
 	self.Main = Main
 
@@ -80,7 +81,7 @@ function Window.new(config)
 	TopBar.BackgroundColor3 = Theme.Colors.Secondary
 	TopBar.Parent = Main
 
-	Utils.Corner(TopBar,Theme.WindowCorner)
+	Utils.Corner(TopBar)
 
 	self.TopBar = TopBar
 
@@ -144,8 +145,8 @@ function Window.new(config)
 	Toggle.BackgroundColor3 = Theme.Colors.Background
 	Toggle.Parent = ScreenGui
 
-	Utils.Corner(Toggle, UDim.new(1, 0))
-	Utils.Stroke(Toggle, Theme.Colors.Accent, 1.5)
+	Utils.Corner(Toggle)
+	Utils.Stroke(Toggle, Theme.Colors.Accent)
 
 	self.Toggle = Toggle
 
@@ -157,19 +158,17 @@ function Window.new(config)
 	Utils.MakeDraggable(Toggle)
 
 	----------------------------------------------------
-	-- TOGGLE MENU (Fix dinamico definitivo)
+	-- TOGGLE MENU
 	----------------------------------------------------
 
 	Toggle.Activated:Connect(function()
 		Main.Visible = not Main.Visible
 	end)
 
-	-- Invece di controllare una variabile fissa, legge self.ToggleKey a ogni pressione!
+	-- RISOLUZIONE: L'evento legge in tempo reale la chiave aggiornata nell'oggetto finestra
 	UserInputService.InputBegan:Connect(function(input, gp)
 		if gp then return end
-		
-		-- Legge l'istanza della finestra per vedere se Library o l'utente hanno cambiato il ToggleKey
-		if input.KeyCode == (self.ToggleKey or Window.ToggleKey) then
+		if input.KeyCode == self.ToggleKey then
 			Main.Visible = not Main.Visible
 		end
 	end)
