@@ -11,14 +11,13 @@ local function CreateContainer(parent, height)
 
 	local frame = Instance.new("Frame")
 
-	frame.Size = UDim2.new(0.95,0,0,height)
+	frame.Size = UDim2.new(0.95, 0, 0, height)
 	frame.BackgroundColor3 = Theme.Colors.Secondary
 	frame.BorderSizePixel = 0
-
 	frame.Parent = parent
 
 	Utils.Corner(frame)
-	Utils.Stroke(frame,Theme.Colors.Stroke)
+	Utils.Stroke(frame, Theme.Colors.Stroke)
 
 	return frame
 
@@ -28,21 +27,19 @@ end
 -- SECTION
 --------------------------------------------------------
 
-function Elements.Section(parent,text)
+function Elements.Section(parent, text)
 
 	local label = Instance.new("TextLabel")
 
-	label.Size = UDim2.new(.95,0,0,22)
-
+	label.Size = UDim2.new(0.95, 0, 0, 22)
 	label.BackgroundTransparency = 1
 
 	label.Font = Theme.BoldFont
 	label.TextColor3 = Theme.Colors.Accent
 	label.TextSize = 12
-
 	label.TextXAlignment = Enum.TextXAlignment.Left
 
-	label.Text = "── "..string.upper(text).." ──"
+	label.Text = "── " .. string.upper(text) .. " ──"
 
 	label.Parent = parent
 
@@ -54,52 +51,79 @@ end
 -- PARAGRAPH
 --------------------------------------------------------
 
-function Elements.Paragraph(parent,title,body)
+function Elements.Paragraph(parent, title, body)
 
-	local frame = CreateContainer(parent,60)
+	local frame = CreateContainer(parent, 60)
 
 	local Title = Instance.new("TextLabel")
-
-	Title.Position = UDim2.new(0,10,0,5)
-	Title.Size = UDim2.new(1,-20,0,18)
-
+	Title.Position = UDim2.new(0, 10, 0, 5)
+	Title.Size = UDim2.new(1, -20, 0, 18)
 	Title.BackgroundTransparency = 1
-
 	Title.Font = Theme.BoldFont
 	Title.TextColor3 = Theme.Colors.Accent
 	Title.TextSize = 13
-
 	Title.TextXAlignment = Enum.TextXAlignment.Left
-
 	Title.Text = title
-
 	Title.Parent = frame
 
 	local Body = Instance.new("TextLabel")
-
-	Body.Position = UDim2.new(0,10,0,24)
-	Body.Size = UDim2.new(1,-20,1,-28)
-
+	Body.Position = UDim2.new(0, 10, 0, 24)
+	Body.Size = UDim2.new(1, -20, 1, -28)
 	Body.BackgroundTransparency = 1
-
 	Body.Font = Theme.Font
 	Body.TextWrapped = true
-
 	Body.TextColor3 = Theme.Colors.TextDark
 	Body.TextSize = 12
-
 	Body.TextXAlignment = Enum.TextXAlignment.Left
 	Body.TextYAlignment = Enum.TextYAlignment.Top
-
 	Body.Text = body
-
 	Body.Parent = frame
 
 	return frame
 
 end
 
-return Elements
+--------------------------------------------------------
+-- LABEL
+--------------------------------------------------------
+
+function Elements.Label(parent, text)
+
+	local label = Instance.new("TextLabel")
+
+	label.Size = UDim2.new(0.95,0,0,22)
+	label.BackgroundTransparency = 1
+
+	label.Font = Theme.Font
+	label.TextSize = 12
+	label.TextColor3 = Theme.Colors.TextDark
+	label.TextXAlignment = Enum.TextXAlignment.Left
+
+	label.Text = text
+
+	label.Parent = parent
+
+	return label
+
+end
+
+--------------------------------------------------------
+-- SEPARATOR
+--------------------------------------------------------
+
+function Elements.Separator(parent)
+
+	local line = Instance.new("Frame")
+
+	line.Size = UDim2.new(0.95,0,0,1)
+	line.BorderSizePixel = 0
+	line.BackgroundColor3 = Theme.Colors.Stroke
+
+	line.Parent = parent
+
+	return line
+
+end
 
 --------------------------------------------------------
 -- BUTTON
@@ -123,73 +147,37 @@ function Elements.Button(parent, text, callback)
 
 	button.MouseButton1Down:Connect(function()
 
-		frame.BackgroundColor3 = Theme.Colors.Accent
-		button.TextColor3 = Color3.new(0,0,0)
+		Utils.Tween(frame,{
+			BackgroundColor3 = Theme.Colors.Accent
+		})
+
+		Utils.Tween(button,{
+			TextColor3 = Color3.new(0,0,0)
+		})
 
 	end)
 
 	button.MouseButton1Up:Connect(function()
 
-		frame.BackgroundColor3 = Theme.Colors.Secondary
-		button.TextColor3 = Theme.Colors.Text
+		Utils.Tween(frame,{
+			BackgroundColor3 = Theme.Colors.Secondary
+		})
+
+		Utils.Tween(button,{
+			TextColor3 = Theme.Colors.Text
+		})
 
 	end)
 
 	button.Activated:Connect(function()
 
 		if callback then
-			callback()
+			task.spawn(callback)
 		end
 
 	end)
 
 	return frame
-
-end
-
---------------------------------------------------------
--- LABEL
---------------------------------------------------------
-
-function Elements.Label(parent,text)
-
-	local label = Instance.new("TextLabel")
-
-	label.Size = UDim2.new(.95,0,0,22)
-
-	label.BackgroundTransparency = 1
-
-	label.Font = Theme.Font
-	label.TextSize = 12
-
-	label.TextColor3 = Theme.Colors.TextDark
-
-	label.TextXAlignment = Enum.TextXAlignment.Left
-
-	label.Text = text
-
-	label.Parent = parent
-
-	return label
-
-end
-
---------------------------------------------------------
--- SEPARATOR
---------------------------------------------------------
-
-function Elements.Separator(parent)
-
-	local line = Instance.new("Frame")
-
-	line.Size = UDim2.new(.95,0,0,1)
-
-	line.BorderSizePixel = 0
-	line.BackgroundColor3 = Theme.Colors.Stroke
-
-	line.Parent = parent
-
-	return line
 
 end
 
@@ -216,19 +204,21 @@ function Elements.Toggle(parent, title, default, callback)
 	bg.Size = UDim2.fromOffset(42,22)
 	bg.Position = UDim2.new(1,-52,.5,-11)
 	bg.BackgroundColor3 = Theme.Colors.Stroke
+	bg.BorderSizePixel = 0
 	bg.Parent = frame
 
-	Utils.Corner(bg,UDim.new(1,0))
+	Utils.Corner(bg, UDim.new(1,0))
 
 	local knob = Instance.new("Frame")
 	knob.Size = UDim2.fromOffset(16,16)
 	knob.Position = UDim2.new(0,3,0,3)
 	knob.BackgroundColor3 = Color3.fromRGB(180,180,180)
+	knob.BorderSizePixel = 0
 	knob.Parent = bg
 
-	Utils.Corner(knob,UDim.new(1,0))
+	Utils.Corner(knob, UDim.new(1,0))
 
-	local state = default or false
+	local state = default == true
 
 	local function Update()
 
@@ -260,20 +250,20 @@ function Elements.Toggle(parent, title, default, callback)
 
 	Update()
 
-	local button = Instance.new("TextButton")
-	button.Size = UDim2.fromScale(1,1)
-	button.BackgroundTransparency = 1
-	button.Text = ""
-	button.Parent = frame
+	local click = Instance.new("TextButton")
+	click.Size = UDim2.fromScale(1,1)
+	click.BackgroundTransparency = 1
+	click.Text = ""
+	click.Parent = frame
 
-	button.Activated:Connect(function()
+	click.Activated:Connect(function()
 
 		state = not state
 
 		Update()
 
 		if callback then
-			callback(state)
+			task.spawn(callback,state)
 		end
 
 	end)
@@ -288,6 +278,8 @@ end
 
 function Elements.Slider(parent,title,min,max,default,callback)
 
+	local UIS = game:GetService("UserInputService")
+
 	local frame = CreateContainer(parent,55)
 
 	local label = Instance.new("TextLabel")
@@ -296,35 +288,37 @@ function Elements.Slider(parent,title,min,max,default,callback)
 	label.Size = UDim2.new(.7,0,0,18)
 	label.Font = Theme.SemiBoldFont
 	label.Text = title
-	label.TextColor3 = Theme.Colors.Text
 	label.TextSize = 13
+	label.TextColor3 = Theme.Colors.Text
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.Parent = frame
 
-	local value = Instance.new("TextLabel")
-	value.BackgroundTransparency = 1
-	value.Position = UDim2.new(.7,0,0,4)
-	value.Size = UDim2.new(.3,-10,0,18)
-	value.Font = Theme.BoldFont
-	value.TextColor3 = Theme.Colors.Accent
-	value.TextXAlignment = Enum.TextXAlignment.Right
-	value.Text = tostring(default)
-	value.Parent = frame
+	local valueLabel = Instance.new("TextLabel")
+	valueLabel.BackgroundTransparency = 1
+	valueLabel.Position = UDim2.new(.7,0,0,4)
+	valueLabel.Size = UDim2.new(.3,-10,0,18)
+	valueLabel.Font = Theme.BoldFont
+	valueLabel.TextColor3 = Theme.Colors.Accent
+	valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+	valueLabel.Text = tostring(default)
+	valueLabel.Parent = frame
 
 	local bar = Instance.new("Frame")
 	bar.Size = UDim2.new(.9,0,0,6)
 	bar.Position = UDim2.new(.05,0,.7,0)
 	bar.BackgroundColor3 = Theme.Colors.Stroke
+	bar.BorderSizePixel = 0
 	bar.Parent = frame
 
-	Utils.Corner(bar,UDim.new(1,0))
+	Utils.Corner(bar, UDim.new(1,0))
 
 	local fill = Instance.new("Frame")
+	fill.Size = UDim2.new(math.clamp((default-min)/(max-min),0,1),0,1,0)
 	fill.BackgroundColor3 = Theme.Colors.Accent
-	fill.Size = UDim2.new((default-min)/(max-min),0,1,0)
+	fill.BorderSizePixel = 0
 	fill.Parent = bar
 
-	Utils.Corner(fill,UDim.new(1,0))
+	Utils.Corner(fill, UDim.new(1,0))
 
 	local dragging = false
 
@@ -338,12 +332,12 @@ function Elements.Slider(parent,title,min,max,default,callback)
 
 		fill.Size = UDim2.new(percent,0,1,0)
 
-		local val = math.floor(min+((max-min)*percent))
+		local value = math.floor(min+((max-min)*percent))
 
-		value.Text = tostring(val)
+		valueLabel.Text = tostring(value)
 
 		if callback then
-			callback(val)
+			task.spawn(callback,value)
 		end
 
 	end
@@ -360,22 +354,20 @@ function Elements.Slider(parent,title,min,max,default,callback)
 
 	end)
 
-	game:GetService("UserInputService").InputChanged:Connect(function(input)
+	UIS.InputChanged:Connect(function(input)
 
-		if dragging then
+		if dragging and (
+			input.UserInputType == Enum.UserInputType.MouseMovement
+			or input.UserInputType == Enum.UserInputType.Touch
+		) then
 
-			if input.UserInputType == Enum.UserInputType.MouseMovement
-			or input.UserInputType == Enum.UserInputType.Touch then
-
-				SetValue(input.Position.X)
-
-			end
+			SetValue(input.Position.X)
 
 		end
 
 	end)
 
-	game:GetService("UserInputService").InputEnded:Connect(function(input)
+	UIS.InputEnded:Connect(function(input)
 
 		if input.UserInputType == Enum.UserInputType.MouseButton1
 		or input.UserInputType == Enum.UserInputType.Touch then
@@ -394,7 +386,7 @@ end
 -- TEXTBOX
 --------------------------------------------------------
 
-function Elements.TextBox(parent, title, placeholder, callback)
+function Elements.TextBox(parent,title,placeholder,callback)
 
 	local frame = CreateContainer(parent,45)
 
@@ -424,9 +416,11 @@ function Elements.TextBox(parent, title, placeholder, callback)
 	Utils.Corner(box)
 
 	box.FocusLost:Connect(function(enterPressed)
+
 		if callback then
-			callback(box.Text, enterPressed)
+			task.spawn(callback, box.Text, enterPressed)
 		end
+
 	end)
 
 	return frame
@@ -437,9 +431,10 @@ end
 -- DROPDOWN
 --------------------------------------------------------
 
-function Elements.Dropdown(parent, title, options, callback)
+function Elements.Dropdown(parent,title,options,callback)
 
 	local frame = CreateContainer(parent,40)
+	frame.ClipsDescendants = true
 
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(1,0,0,40)
@@ -453,11 +448,15 @@ function Elements.Dropdown(parent, title, options, callback)
 
 	local opened = false
 
-	local list = Instance.new("Frame")
+	local list = Instance.new("ScrollingFrame")
 	list.Visible = false
 	list.Position = UDim2.new(0,0,0,42)
-	list.Size = UDim2.new(1,0,0,#options*30)
+	list.Size = UDim2.new(1,0,0,0)
+	list.CanvasSize = UDim2.new(0,0,0,#options*30)
+	list.ScrollBarThickness = 3
+	list.ScrollBarImageColor3 = Theme.Colors.Accent
 	list.BackgroundColor3 = Theme.Colors.Secondary
+	list.BorderSizePixel = 0
 	list.Parent = frame
 
 	Utils.Corner(list)
@@ -474,6 +473,7 @@ function Elements.Dropdown(parent, title, options, callback)
 		opt.Font = Theme.Font
 		opt.Text = "   "..tostring(option)
 		opt.TextColor3 = Theme.Colors.Text
+		opt.TextSize = 12
 		opt.TextXAlignment = Enum.TextXAlignment.Left
 		opt.Parent = list
 
@@ -481,13 +481,15 @@ function Elements.Dropdown(parent, title, options, callback)
 
 			button.Text = "  "..tostring(option).." ▼"
 
-			list.Visible = false
-			frame.Size = UDim2.new(.95,0,0,40)
-
 			opened = false
 
+			list.Visible = false
+			list.Size = UDim2.new(1,0,0,0)
+
+			frame.Size = UDim2.new(.95,0,0,40)
+
 			if callback then
-				callback(option)
+				task.spawn(callback, option)
 			end
 
 		end)
@@ -498,12 +500,22 @@ function Elements.Dropdown(parent, title, options, callback)
 
 		opened = not opened
 
-		list.Visible = opened
-
 		if opened then
-			frame.Size = UDim2.new(.95,0,0,45+(#options*30))
+
+			local height = math.min(#options*30,120)
+
+			list.Visible = true
+			list.Size = UDim2.new(1,0,0,height)
+
+			frame.Size = UDim2.new(.95,0,0,height+45)
+
 		else
+
+			list.Visible = false
+			list.Size = UDim2.new(1,0,0,0)
+
 			frame.Size = UDim2.new(.95,0,0,40)
+
 		end
 
 	end)
@@ -516,7 +528,7 @@ end
 -- KEYBIND
 --------------------------------------------------------
 
-function Elements.Keybind(parent, title, defaultKey, callback)
+function Elements.Keybind(parent,title,defaultKey,callback)
 
 	local UIS = game:GetService("UserInputService")
 
@@ -538,8 +550,8 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 	bind.Position = UDim2.new(1,-90,.5,-12)
 	bind.BackgroundColor3 = Theme.Colors.Tertiary
 	bind.Font = Theme.BoldFont
-	bind.TextSize = 12
 	bind.TextColor3 = Theme.Colors.Accent
+	bind.TextSize = 12
 	bind.Text = defaultKey.Name
 	bind.Parent = frame
 
@@ -566,7 +578,6 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 			if input.UserInputType == Enum.UserInputType.Keyboard then
 
 				waiting = false
-
 				current = input.KeyCode
 
 				bind.Text = current.Name
@@ -576,7 +587,7 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 		elseif input.KeyCode == current then
 
 			if callback then
-				callback(current)
+				task.spawn(callback,current)
 			end
 
 		end
@@ -586,3 +597,9 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 	return frame
 
 end
+
+--------------------------------------------------------
+-- RETURN
+--------------------------------------------------------
+
+return Elements
