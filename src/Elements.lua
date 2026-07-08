@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX Modern Elements Engine (Premium Dark/Neon UI - Corretto)
+-- ScorpioX Modern Elements Engine (Premium Dark/Neon UI)
 --==============================================================================
 
 local Modules = getgenv().ScorpioXModules
@@ -209,7 +209,6 @@ function Elements.Toggle(parent, title, default, callback)
 	return frame
 end
 
--- SLIDER
 function Elements.Slider(parent, title, min, max, default, callback)
 	local UIS = game:GetService("UserInputService")
 	local frame = CreateContainer(parent, 52)
@@ -401,9 +400,6 @@ function Elements.Dropdown(parent, title, options, callback)
 	return frame
 end
 
---------------------------------------------------------
--- KEYBIND (FIXATO - Esegue la callback al cambio tasto)
---------------------------------------------------------
 function Elements.Keybind(parent, title, defaultKey, callback)
 	local UIS = game:GetService("UserInputService")
 	local frame = CreateContainer(parent, 40)
@@ -449,8 +445,12 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 				waiting = false
 				current = input.KeyCode
 				bind.Text = current.Name
-				-- FIX CRITICO: Esegue la callback passando il NUOVO tasto salvato
 				if callback then task.spawn(callback, current) end
+			end
+		elseif input.KeyCode == current then
+			-- Se non stiamo cambiando tasto, ma stiamo premendo il tasto del cheat normale (es. E per attivare mod)
+			if title ~= "Tasto Menu" and callback then 
+				task.spawn(callback, current) 
 			end
 		end
 	end)
