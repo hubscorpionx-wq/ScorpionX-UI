@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX UI Library
+-- ScorpioX UI Library (init.lua)
 -- Author: ScorpioX
 --==============================================================================
 
@@ -13,11 +13,8 @@ return function(Window, Elements, Notifications)
 
 		config = config or {}
 
-		local window = Window.new(
-			config.Title or "SCORPIO X",
-			config.Icon or "",
-			config.ToggleKey or Enum.KeyCode.RightControl
-		)
+		-- MODIFICATO: Passa l'intera tabella config a Window.new per supportare le dimensioni custom
+		local window = Window.new(config)
 
 		local api = {}
 
