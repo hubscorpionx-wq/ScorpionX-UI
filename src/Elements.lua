@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX Modern Elements Engine (Premium Dark/Neon UI)
+-- ScorpioX Modern Elements Engine (Ripristinato)
 --==============================================================================
 
 local Modules = getgenv().ScorpioXModules
@@ -239,7 +239,7 @@ function Elements.Slider(parent, title, min, max, default, callback)
 	bar.Position = UDim2.new(0, 12, 0.7, 0)
 	bar.BackgroundColor3 = Theme.Colors.Stroke
 	bar.BorderSizePixel = 0
-	bar.Parent = frame
+	bar.Parent = bar
 
 	Utils.Corner(bar)
 
@@ -445,13 +445,9 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 				waiting = false
 				current = input.KeyCode
 				bind.Text = current.Name
-				if callback then task.spawn(callback, current) end
 			end
 		elseif input.KeyCode == current then
-			-- Se non stiamo cambiando tasto, ma stiamo premendo il tasto del cheat normale (es. E per attivare mod)
-			if title ~= "Tasto Menu" and callback then 
-				task.spawn(callback, current) 
-			end
+			if callback then task.spawn(callback, current) end
 		end
 	end)
 
