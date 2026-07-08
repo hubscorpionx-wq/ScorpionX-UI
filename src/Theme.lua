@@ -1,25 +1,55 @@
+--==============================================================================
+-- ScorpioX Theme
+--==============================================================================
+
 local Theme = {}
 
-Theme.Default = {
-    Background = Color3.fromRGB(15, 15, 15),
-    Secondary = Color3.fromRGB(22, 22, 22),
-    Surface = Color3.fromRGB(30, 30, 30),
+Theme.Colors = {
 
-    Accent = Color3.fromRGB(150, 255, 0),
+	Background = Color3.fromRGB(15,15,15),
 
-    Text = Color3.fromRGB(255, 255, 255),
-    SubText = Color3.fromRGB(180, 180, 180),
+	Secondary = Color3.fromRGB(22,22,22),
 
-    Border = Color3.fromRGB(45, 45, 45),
+	Tertiary = Color3.fromRGB(30,30,30),
 
-    Success = Color3.fromRGB(0, 255, 100),
-    Warning = Color3.fromRGB(255, 180, 0),
-    Error = Color3.fromRGB(255, 70, 70),
+	Accent = Color3.fromRGB(150,255,0),
 
-    CornerRadius = UDim.new(0,8),
+	Text = Color3.fromRGB(255,255,255),
 
-    Font = Enum.Font.SourceSansSemibold,
-    TitleFont = Enum.Font.SourceSansBold
+	TextDark = Color3.fromRGB(180,180,180),
+
+	Placeholder = Color3.fromRGB(120,120,120),
+
+	Stroke = Color3.fromRGB(45,45,45),
+
+	Success = Color3.fromRGB(0,200,0),
+
+	Error = Color3.fromRGB(220,70,70),
+
+	Warning = Color3.fromRGB(255,180,0)
+
 }
+
+Theme.CornerRadius = UDim.new(0,6)
+
+Theme.WindowCorner = UDim.new(0,10)
+
+Theme.Font = Enum.Font.SourceSans
+
+Theme.BoldFont = Enum.Font.SourceSansBold
+
+Theme.SemiBoldFont = Enum.Font.SourceSansSemibold
+
+Theme.TitleSize = 14
+
+Theme.TextSize = 13
+
+Theme.SmallText = 11
+
+Theme.AnimationSpeed = TweenInfo.new(
+	0.25,
+	Enum.EasingStyle.Quad,
+	Enum.EasingDirection.Out
+)
 
 return Theme
