@@ -346,7 +346,7 @@ function Elements.TextBox(parent, title, placeholder, callback)
 	return frame
 end
 
---------------------------------------------------------
+----------------------------------------------------------
 -- DROPDOWN
 --------------------------------------------------------
 function Elements.Dropdown(parent, title, options, callback)
@@ -356,7 +356,7 @@ function Elements.Dropdown(parent, title, options, callback)
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(1, 0, 0, 40)
 	button.BackgroundTransparency = 1
-	button.Text = "  " .. title .. "  ▼"
+	button.Text = "  " .. title .. "  ▼" -- Freccia iniziale (chiuso)
 	button.Font = Theme.SemiBoldFont
 	button.TextSize = 13
 	button.TextColor3 = Theme.Colors.Text
@@ -404,6 +404,7 @@ function Elements.Dropdown(parent, title, options, callback)
 		end)
 
 		opt.Activated:Connect(function()
+			-- Quando si seleziona un'opzione, il menu si chiude -> Freccia in giù ▼
 			button.Text = "  " .. tostring(option) .. "  ▼"
 			opened = false
 			list.Visible = false
@@ -415,11 +416,15 @@ function Elements.Dropdown(parent, title, options, callback)
 	button.Activated:Connect(function()
 		opened = not opened
 		if opened then
+			-- Menu aperto -> Freccia in su ▲
+			button.Text = "  " .. title .. "  ▲"
 			local height = math.min(#options * 28 + 5, 115)
 			list.Visible = true
 			list.Size = UDim2.new(1, -24, 0, height)
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, height + 50)})
 		else
+			-- Menu chiuso -> Freccia in giù ▼
+			button.Text = "  " .. title .. "  ▼"
 			list.Visible = false
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
 		end
