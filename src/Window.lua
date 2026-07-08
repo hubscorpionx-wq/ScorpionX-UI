@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX Window Engine (Icon Enlarger & Subtitle Fix)
+-- ScorpioX Window Engine (Layout: Icona -> Titolo -> Punto -> Sottotitolo)
 --==============================================================================
 
 local Players = game:GetService("Players")
@@ -83,35 +83,31 @@ function Window.new(config)
 
 	self.TopBar = TopBar
 
-	local titleOffset = 15
+	-- CONTENITORE PRINCIPALE DELLA TOPBAR CON LAYOUT ORIZZONTALE
+	local TopBarContainer = Instance.new("Frame")
+	TopBarContainer.Name = "TopBarContainer"
+	TopBarContainer.BackgroundTransparency = 1
+	TopBarContainer.Position = UDim2.new(0, 12, 0, 0) -- Margine sinistro iniziale
+	TopBarContainer.Size = UDim2.new(1, -24, 1, 0)
+	TopBarContainer.Parent = TopBar
+
+	local TopBarLayout = Instance.new("UIListLayout")
+	TopBarLayout.FillDirection = Enum.FillDirection.Horizontal
+	TopBarLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	TopBarLayout.Padding = UDim.new(0, 8) -- Spazio tra Icona, Titolo, Punto e Sottotitolo
+	TopBarLayout.Parent = TopBarContainer
+
+	-- 1. ICONA (Se presente nella configurazione, appare per prima)
 	if iconId then
 		local TopBarIcon = Instance.new("ImageLabel")
 		TopBarIcon.Name = "TopBarIcon"
-		-- MODIFICATO: Icona resa leggermente più grande (da 20x20 a 24x24) e ricentrata verticalmente
-		TopBarIcon.Size = UDim2.fromOffset(24, 24)
-		TopBarIcon.Position = UDim2.new(0, 12, 0.5, -12)
+		TopBarIcon.Size = UDim2.fromOffset(24, 24) -- Dimensione ingrandita
 		TopBarIcon.BackgroundTransparency = 1
 		TopBarIcon.Image = "rbxassetid://" .. iconId
-		TopBarIcon.Parent = TopBar
-		
-		titleOffset = 44
+		TopBarIcon.Parent = TopBarContainer
 	end
 
-	-- CONTENITORE PER ALLINEARE GLI ELEMENTI DEL TITOLO
-	local TitleContainer = Instance.new("Frame")
-	TitleContainer.Name = "TitleContainer"
-	TitleContainer.BackgroundTransparency = 1
-	TitleContainer.Position = UDim2.new(0, titleOffset, 0, 0)
-	TitleContainer.Size = UDim2.new(1, -titleOffset - 15, 1, 0)
-	TitleContainer.Parent = TopBar
-
-	local TitleLayout = Instance.new("UIListLayout")
-	TitleLayout.FillDirection = Enum.FillDirection.Horizontal
-	TitleLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-	TitleLayout.Padding = UDim.new(0, 6) -- Spazio fisso tra gli elementi
-	TitleLayout.Parent = TitleContainer
-
-	-- 1. TITOLO PRINCIPALE (Primo elemento: appare davanti)
+	-- 2. TITOLO PRINCIPALE (Appare subito dopo l'icona)
 	local Title = Instance.new("TextLabel")
 	Title.Name = "TitleLabel"
 	Title.BackgroundTransparency = 1
@@ -122,36 +118,36 @@ function Window.new(config)
 	Title.TextXAlignment = Enum.TextXAlignment.Left
 	Title.TextSize = 15
 	Title.Text = tostring(title):upper()
-	Title.Parent = TitleContainer
+	Title.Parent = TopBarContainer
 
 	self.Title = Title
 
 	-- CONTROLLO SE IL SOTTOTITOLO ESISTE NELLA CONFIGURAZIONE
 	if config.Subtitle and config.Subtitle ~= "" then
-		-- 2. IL PUNTO SEPARATORE (Secondo elemento: dietro il titolo)
+		-- 3. IL PUNTO SEPARATORE (Appare dopo il titolo)
 		local DotSeparator = Instance.new("TextLabel")
 		DotSeparator.Name = "DotSeparator"
 		DotSeparator.BackgroundTransparency = 1
 		DotSeparator.AutomaticSize = Enum.AutomaticSize.X
 		DotSeparator.Size = UDim2.new(0, 0, 1, 0)
 		DotSeparator.Font = Enum.Font.SourceSansBold
-		DotSeparator.TextColor3 = Color3.fromRGB(120, 120, 120) -- Grigio scuro per il punto
+		DotSeparator.TextColor3 = Color3.fromRGB(120, 120, 120) -- Colore grigio scuro
 		DotSeparator.TextSize = 14
 		DotSeparator.Text = "•"
-		DotSeparator.Parent = TitleContainer
+		DotSeparator.Parent = TopBarContainer
 
-		-- 3. SOTTOTITOLO (Terzo elemento: dietro il punto)
+		-- 4. SOTTOTITOLO (Appare alla fine, dopo il punto)
 		local Subtitle = Instance.new("TextLabel")
 		Subtitle.Name = "SubtitleLabel"
 		Subtitle.BackgroundTransparency = 1
 		Subtitle.AutomaticSize = Enum.AutomaticSize.X
 		Subtitle.Size = UDim2.new(0, 0, 1, 0)
 		Subtitle.Font = Theme.SemiBoldFont or Enum.Font.SourceSans
-		Subtitle.TextColor3 = Color3.fromRGB(160, 160, 160) -- Grigio chiaro
+		Subtitle.TextColor3 = Color3.fromRGB(160, 160, 160) -- Colore grigio chiaro
 		Subtitle.TextXAlignment = Enum.TextXAlignment.Left
 		Subtitle.TextSize = 12
 		Subtitle.Text = tostring(config.Subtitle)
-		Subtitle.Parent = TitleContainer
+		Subtitle.Parent = TopBarContainer
 		
 		self.Subtitle = Subtitle
 	end
