@@ -88,7 +88,7 @@ function Window.new(config)
 	self.Title = Title
 
 	----------------------------------------------------
-	-- FLOAT BUTTON (Cerchio Perfetto Fix)
+	-- FLOAT BUTTON (Cerchio Perfetto)
 	----------------------------------------------------
 	local Toggle
 	if iconId then
@@ -122,7 +122,7 @@ function Window.new(config)
 	Utils.MakeDraggable(Toggle)
 
 	----------------------------------------------------
-	-- TOGGLE MENU (Fix Dinamico)
+	-- TOGGLE MENU (Dinamico)
 	----------------------------------------------------
 	Toggle.Activated:Connect(function()
 		Main.Visible = not Main.Visible
@@ -172,23 +172,8 @@ function Window.new(config)
 	self.Tabs = {}
 	self.Buttons = {}
 	self.ActiveTab = nil
-	self.ActiveDropdown = nil
-	self.ActiveDropdownContainer = nil
-
-	function self:HideDropdown()
-		if self.ActiveDropdown then
-			self.ActiveDropdown.Visible = false
-			self.ActiveDropdown.Size = UDim2.new(1, 0, 0, 0)
-			if self.ActiveDropdownContainer then
-				self.ActiveDropdownContainer.Size = UDim2.new(0.95, 0, 0, 35)
-			end
-			self.ActiveDropdown = nil
-			self.ActiveDropdownContainer = nil
-		end
-	end
 
 	function self:SelectTab(name)
-		self:HideDropdown()
 		for tabName, frame in pairs(self.Tabs) do
 			frame.Visible = (tabName == name)
 		end
@@ -245,19 +230,34 @@ function Window.new(config)
 		self.Tabs[name] = tabFrame
 		self.Buttons[name] = tabButton
 
+		-- AGGANCIO DI ELEMENTS ALLA TAB
+		local tabContainer = {}
+		local Elements = Modules.Elements
+
+		function tabContainer:Section(text) return Elements.Section(tabFrame, text) end
+		function tabContainer:Paragraph(title, body) return Elements.Paragraph(tabFrame, title, body) end
+		function tabContainer:Label(text) return Elements.Label(tabFrame, text) end
+		function tabContainer:Separator() return Elements.Separator(tabFrame) end
+		function tabContainer:Button(text, callback) return Elements.Button(tabFrame, text, callback) end
+		function tabContainer:Toggle(title, default, callback) return Elements.Toggle(tabFrame, title, default, callback) end
+		function tabContainer:Slider(title, min, max, default, callback) return Elements.Slider(tabFrame, title, min, max, default, callback) end
+		function tabContainer:TextBox(title, placeholder, callback) return Elements.TextBox(tabFrame, title, placeholder, callback) end
+		function tabContainer:Dropdown(title, options, callback) return Elements.Dropdown(tabFrame, title, options, callback) end
+		function tabContainer:Keybind(title, defaultKey, callback) return Elements.Keybind(tabFrame, title, defaultKey, callback) end
+
 		if not self.ActiveTab then
 			self:SelectTab(name)
 		end
 
-		return tabFrame
+		return tabContainer
 	end
 
-	function self:Destroy()
-		if self.Gui then self.Gui:Destroy() end
+	function self:Notify(title, text, duration)
+		-- Semplice notifica fallback se non l'hai creata altrove
+		print("[" .. tostring(title) .. "]: " .. tostring(text))
 	end
 
 	Modules.CurrentWindowInstance = self
-
 	return self
 end
 
