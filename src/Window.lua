@@ -6,8 +6,10 @@ local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 
-local Theme = require(script.Parent.Theme)
-local Utils = require(script.Parent.Utils)
+local Modules = getgenv().ScorpioXModules
+
+local Theme = Modules.Theme
+local Utils = Modules.Utils
 
 local Window = {}
 Window.__index = Window
