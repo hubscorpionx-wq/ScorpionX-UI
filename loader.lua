@@ -1,27 +1,39 @@
 --==============================================================================
--- ScorpioX Loader
+-- ScorpioX Loader (Ottimizzato)
 --==============================================================================
 
 local BASE = "https://raw.githubusercontent.com/hubscorpionx-wq/ScorpionX-UI/main/src/"
 
 local function Get(name)
-    return loadstring(game:HttpGet(BASE .. name .. ".lua"))()
+    local success, result = pcall(function()
+        return loadstring(game:HttpGet(BASE .. name .. ".lua"))()
+    end)
+    
+    if not success then
+        error("[-] Errore nel caricamento del modulo: " .. tostring(name) .. "\n" .. tostring(result))
+    end
+    
+    return result
 end
 
--- Moduli condivisi
+-- 1. Inizializza subito l'ambiente globale con i moduli condivisi
 local Modules = {}
-
 Modules.Theme = Get("Theme")
 Modules.Utils = Get("Utils")
 
 getgenv().ScorpioXModules = Modules
 
--- Moduli principali
-Modules.Window = Get("Window")
-Modules.Elements = Get("Elements")
-Modules.Notifications = Get("Notifications")
+-- 2. Scarica i file sorgenti (ora Window non crasherà mai perché ScorpioXModules.Theme esiste già)
+local WindowFile = Get("Window")
+local ElementsFile = Get("Elements")
+local NotificationsFile = Get("Notifications")
 
--- Libreria
-local Library = Get("init")(Modules.Window, Modules.Elements, Modules.Notifications)
+-- Aggiorna la tabella moduli per sicurezza
+Modules.Window = WindowFile
+Modules.Elements = ElementsFile
+Modules.Notifications = NotificationsFile
+
+-- 3. Inizializza la libreria passando i componenti a "init.lua"
+local Library = Get("init")(WindowFile, ElementsFile, NotificationsFile)
 
 return Library
