@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX Window Engine (Subtitle After Title with Dot Fix)
+-- ScorpioX Window Engine (Icon Enlarger & Subtitle Fix)
 --==============================================================================
 
 local Players = game:GetService("Players")
@@ -87,13 +87,14 @@ function Window.new(config)
 	if iconId then
 		local TopBarIcon = Instance.new("ImageLabel")
 		TopBarIcon.Name = "TopBarIcon"
-		TopBarIcon.Size = UDim2.fromOffset(20, 20)
-		TopBarIcon.Position = UDim2.new(0, 12, 0.5, -10)
+		-- MODIFICATO: Icona resa leggermente più grande (da 20x20 a 24x24) e ricentrata verticalmente
+		TopBarIcon.Size = UDim2.fromOffset(24, 24)
+		TopBarIcon.Position = UDim2.new(0, 12, 0.5, -12)
 		TopBarIcon.BackgroundTransparency = 1
 		TopBarIcon.Image = "rbxassetid://" .. iconId
 		TopBarIcon.Parent = TopBar
 		
-		titleOffset = 40
+		titleOffset = 44
 	end
 
 	-- CONTENITORE PER ALLINEARE GLI ELEMENTI DEL TITOLO
@@ -110,7 +111,7 @@ function Window.new(config)
 	TitleLayout.Padding = UDim.new(0, 6) -- Spazio fisso tra gli elementi
 	TitleLayout.Parent = TitleContainer
 
-	-- 1. TITOLO PRINCIPALE (Primo elemento del layout)
+	-- 1. TITOLO PRINCIPALE (Primo elemento: appare davanti)
 	local Title = Instance.new("TextLabel")
 	Title.Name = "TitleLabel"
 	Title.BackgroundTransparency = 1
@@ -127,7 +128,7 @@ function Window.new(config)
 
 	-- CONTROLLO SE IL SOTTOTITOLO ESISTE NELLA CONFIGURAZIONE
 	if config.Subtitle and config.Subtitle ~= "" then
-		-- 2. IL PUNTO SEPARATORE (Secondo elemento del layout)
+		-- 2. IL PUNTO SEPARATORE (Secondo elemento: dietro il titolo)
 		local DotSeparator = Instance.new("TextLabel")
 		DotSeparator.Name = "DotSeparator"
 		DotSeparator.BackgroundTransparency = 1
@@ -139,7 +140,7 @@ function Window.new(config)
 		DotSeparator.Text = "•"
 		DotSeparator.Parent = TitleContainer
 
-		-- 3. SOTTOTITOLO (Terzo elemento del layout, posizionato dopo il punto)
+		-- 3. SOTTOTITOLO (Terzo elemento: dietro il punto)
 		local Subtitle = Instance.new("TextLabel")
 		Subtitle.Name = "SubtitleLabel"
 		Subtitle.BackgroundTransparency = 1
