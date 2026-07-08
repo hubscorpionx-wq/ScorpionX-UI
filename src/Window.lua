@@ -168,3 +168,131 @@ function Window.new(title, iconId, toggleKey)
 		end
 
 	end)
+		----------------------------------------------------
+	-- SIDEBAR
+	----------------------------------------------------
+
+	local SideBar = Instance.new("ScrollingFrame")
+
+	SideBar.Name = "SideBar"
+	SideBar.Size = UDim2.new(0,130,1,-50)
+	SideBar.Position = UDim2.new(0,10,0,45)
+
+	SideBar.BackgroundTransparency = 1
+	SideBar.BorderSizePixel = 0
+	SideBar.ScrollBarThickness = 3
+	SideBar.ScrollBarImageColor3 = Theme.Colors.Accent
+	SideBar.CanvasSize = UDim2.new()
+
+	SideBar.Parent = Main
+
+	local SideLayout = Instance.new("UIListLayout")
+	SideLayout.Padding = UDim.new(0,5)
+	SideLayout.Parent = SideBar
+
+	SideLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+
+		SideBar.CanvasSize = UDim2.new(
+			0,
+			0,
+			0,
+			SideLayout.AbsoluteContentSize.Y + 10
+		)
+
+	end)
+
+	self.SideBar = SideBar
+
+	----------------------------------------------------
+	-- CONTENT
+	----------------------------------------------------
+
+	local Content = Instance.new("Frame")
+
+	Content.Name = "Content"
+
+	Content.Position = UDim2.new(0,150,0,45)
+	Content.Size = UDim2.new(1,-160,1,-55)
+
+	Content.BackgroundTransparency = 1
+
+	Content.Parent = Main
+
+	self.Content = Content
+
+	----------------------------------------------------
+	-- TABLES
+	----------------------------------------------------
+
+	self.Tabs = {}
+	self.Buttons = {}
+
+	self.ActiveTab = nil
+
+	self.ActiveDropdown = nil
+	self.ActiveDropdownContainer = nil
+
+	----------------------------------------------------
+	-- FUNCTIONS
+	----------------------------------------------------
+
+	function self:HideDropdown()
+
+		if self.ActiveDropdown then
+
+			self.ActiveDropdown.Visible = false
+
+			self.ActiveDropdown.Size = UDim2.new(
+				1,
+				0,
+				0,
+				0
+			)
+
+			if self.ActiveDropdownContainer then
+
+				self.ActiveDropdownContainer.Size = UDim2.new(
+					0.95,
+					0,
+					0,
+					35
+				)
+
+			end
+
+			self.ActiveDropdown = nil
+			self.ActiveDropdownContainer = nil
+
+		end
+
+	end
+
+	function self:SelectTab(name)
+
+		self:HideDropdown()
+
+		for tabName,frame in pairs(self.Tabs) do
+
+			frame.Visible = (tabName == name)
+
+		end
+
+		for btnName,button in pairs(self.Buttons) do
+
+			if btnName == name then
+
+				button.BackgroundColor3 = Theme.Colors.Accent
+				button.TextColor3 = Color3.new()
+
+			else
+
+				button.BackgroundColor3 = Theme.Colors.Secondary
+				button.TextColor3 = Theme.Colors.TextDark
+
+			end
+
+		end
+
+		self.ActiveTab = name
+
+	end
