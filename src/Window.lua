@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX Window Engine (Con Supporto Icone a Grandezza Pulsante)
+-- ScorpioX Window Engine (Icone e Proporzioni Fixed)
 --==============================================================================
 
 local Players = game:GetService("Players")
@@ -18,7 +18,7 @@ function Window.new(config)
 	config = config or {}
 	local title = config.Title or "SCORPIO X"
 	
-	-- Gestione ID Icona (pulisce la stringa prendendo solo i numeri se viene passato rbxassetid://)
+	-- Gestione ID Icona (Prende solo i numeri)
 	local iconId = tostring(config.Icon or ""):match("%d+")
 	local toggleKey = config.ToggleKey or Enum.KeyCode.RightControl
 	
@@ -85,7 +85,7 @@ function Window.new(config)
 
 	self.TopBar = TopBar
 
-	-- Se c'è un'icona, crea il componente ImageLabel nell'angolo della TopBar
+	-- Icona TopBar
 	local titleOffset = 15
 	if iconId then
 		local TopBarIcon = Instance.new("ImageLabel")
@@ -94,10 +94,9 @@ function Window.new(config)
 		TopBarIcon.Position = UDim2.new(0, 12, 0.5, -10)
 		TopBarIcon.BackgroundTransparency = 1
 		TopBarIcon.Image = "rbxassetid://" .. iconId
-		TopBarIcon.ImageColor3 = Theme.Colors.Accent -- Usa il colore verde acido del tuo tema
 		TopBarIcon.Parent = TopBar
 		
-		titleOffset = 40 -- Sposta il testo del titolo più a destra per non sovrapporsi all'icona
+		titleOffset = 40
 	end
 
 	local Title = Instance.new("TextLabel")
@@ -131,25 +130,24 @@ function Window.new(config)
 	Utils.Corner(Toggle, UDim.new(1, 0))
 	Utils.Stroke(Toggle, Theme.Colors.Accent, 1.5)
 
-	-- MODIFICATO: L'icona adesso occupa il 100% della grandezza del pulsante con un padding interno controllato
+	-- FIX: Se c'è l'icona, forziamo il testo vuoto per non sovrapporlo
 	if iconId then
 		Toggle.Text = ""
 		
 		local ButtonIcon = Instance.new("ImageLabel")
 		ButtonIcon.Name = "ButtonIcon"
-		ButtonIcon.Size = UDim2.fromScale(1, 1) -- Prende tutta la grandezza del pulsante (stessa grandezza)
+		ButtonIcon.Size = UDim2.fromScale(1, 1) -- Occupa interamente lo spazio del pulsante
 		ButtonIcon.Position = UDim2.new(0, 0, 0, 0)
 		ButtonIcon.BackgroundTransparency = 1
 		ButtonIcon.Image = "rbxassetid://" .. iconId
-		ButtonIcon.ImageColor3 = Theme.Colors.Text -- Icona bianca/chiara dentro il pulsante
 		ButtonIcon.Parent = Toggle
 
-		-- Aggiunge un padding interno per evitare che l'icona tocchi i bordi del cerchio
+		-- Padding interno per non far toccare i bordi all'immagine
 		local Padding = Instance.new("UIPadding")
-		Padding.PaddingTop = UDim.new(0, 12)
-		Padding.PaddingBottom = UDim.new(0, 12)
-		Padding.PaddingLeft = UDim.new(0, 12)
-		Padding.PaddingRight = UDim.new(0, 12)
+		Padding.PaddingTop = UDim.new(0, 10)
+		Padding.PaddingBottom = UDim.new(0, 10)
+		Padding.PaddingLeft = UDim.new(0, 10)
+		Padding.PaddingRight = UDim.new(0, 10)
 		Padding.Parent = Toggle
 	else
 		Toggle.Text = "SCO"
