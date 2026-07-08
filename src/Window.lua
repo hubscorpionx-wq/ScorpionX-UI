@@ -296,3 +296,92 @@ function Window.new(title, iconId, toggleKey)
 		self.ActiveTab = name
 
 	end
+
+		----------------------------------------------------
+	-- CREATE TAB
+	----------------------------------------------------
+
+	function self:CreateTab(name)
+
+		local tabFrame = Instance.new("ScrollingFrame")
+
+		tabFrame.Name = name
+
+		tabFrame.Size = UDim2.new(1,0,1,0)
+		tabFrame.CanvasSize = UDim2.new()
+		tabFrame.BackgroundTransparency = 1
+		tabFrame.BorderSizePixel = 0
+		tabFrame.ScrollBarThickness = 3
+		tabFrame.ScrollBarImageColor3 = Theme.Colors.Accent
+		tabFrame.Visible = false
+
+		tabFrame.Parent = self.Content
+
+		local layout = Instance.new("UIListLayout")
+		layout.Padding = UDim.new(0,6)
+		layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		layout.Parent = tabFrame
+
+		layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+
+			tabFrame.CanvasSize = UDim2.new(
+				0,
+				0,
+				0,
+				layout.AbsoluteContentSize.Y + 10
+			)
+
+		end)
+
+		local tabButton = Instance.new("TextButton")
+
+		tabButton.Size = UDim2.new(1,-10,0,32)
+		tabButton.BackgroundColor3 = Theme.Colors.Secondary
+
+		tabButton.Text = "   "..name
+		tabButton.TextColor3 = Theme.Colors.TextDark
+		tabButton.TextXAlignment = Enum.TextXAlignment.Left
+		tabButton.Font = Theme.SemiBoldFont
+		tabButton.TextSize = 13
+
+		tabButton.Parent = self.SideBar
+
+		Utils.Corner(tabButton)
+		Utils.Stroke(tabButton,Theme.Colors.Stroke)
+
+		tabButton.Activated:Connect(function()
+
+			self:SelectTab(name)
+
+		end)
+
+		self.Tabs[name] = tabFrame
+		self.Buttons[name] = tabButton
+
+		if not self.ActiveTab then
+
+			self:SelectTab(name)
+
+		end
+
+		return tabFrame
+
+	end
+
+	----------------------------------------------------
+	-- DESTROY
+	----------------------------------------------------
+
+	function self:Destroy()
+
+		if self.Gui then
+			self.Gui:Destroy()
+		end
+
+	end
+
+	return self
+
+end
+
+return Window
