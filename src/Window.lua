@@ -108,7 +108,6 @@ function Window.new(config)
 	Toggle.BackgroundColor3 = Theme.Colors.Background
 	Toggle.Parent = ScreenGui
 
-	-- Applicazione diretta dell'UICorner sferico totale (1, 0)
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius = UDim.new(1, 0)
 	corner.Parent = Toggle
@@ -131,7 +130,6 @@ function Window.new(config)
 
 	UserInputService.InputBegan:Connect(function(input, gp)
 		if gp then return end
-		-- Legge self.ToggleKey in tempo reale!
 		if input.KeyCode == self.ToggleKey then
 			Main.Visible = not Main.Visible
 		end
@@ -258,7 +256,6 @@ function Window.new(config)
 		if self.Gui then self.Gui:Destroy() end
 	end
 
-	-- Rendiamo l'istanza accessibile globalmente per i moduli esterni
 	Modules.CurrentWindowInstance = self
 
 	return self
