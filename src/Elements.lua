@@ -2,8 +2,7 @@
 -- ScorpioX Elements
 --==============================================================================
 
-local Theme = require(script.Parent.Theme)
-local Utils = require(script.Parent.Utils)
+return function(Theme, Utils)
 
 local Elements = {}
 
@@ -602,4 +601,7 @@ end
 -- RETURN
 --------------------------------------------------------
 
+
 return Elements
+
+end
