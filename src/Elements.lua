@@ -1,196 +1,176 @@
-local Modules = getgenv().ScorpioXModules
+--==============================================================================
+-- ScorpioX Modern Elements Engine (Premium Dark/Neon UI)
+--==============================================================================
 
-local Theme = Modules.Theme
+local Modules = getgenv().ScorpioXModules
+local Theme = Modules.Theme or require(Modules.Theme)
 local Utils = Modules.Utils
 
 local Elements = {}
 
+-- Funzione helper per creare i container degli elementi con stile coerente
 local function CreateContainer(parent, height)
-
 	local frame = Instance.new("Frame")
-
 	frame.Size = UDim2.new(0.95, 0, 0, height)
 	frame.BackgroundColor3 = Theme.Colors.Secondary
 	frame.BorderSizePixel = 0
 	frame.Parent = parent
 
-	Utils.Corner(frame)
-	Utils.Stroke(frame, Theme.Colors.Stroke)
+	Utils.Corner(frame, Theme.ElementCorner or UDim.new(0, 6))
+	Utils.Stroke(frame, Theme.Colors.Stroke, 1)
 
 	return frame
-
 end
 
 --------------------------------------------------------
 -- SECTION
 --------------------------------------------------------
-
 function Elements.Section(parent, text)
+	local container = Instance.new("Frame")
+	container.Size = UDim2.new(0.95, 0, 0, 30)
+	container.BackgroundTransparency = 1
+	container.Parent = parent
 
 	local label = Instance.new("TextLabel")
-
-	label.Size = UDim2.new(0.95, 0, 0, 22)
+	label.Size = UDim2.new(1, 0, 1, 0)
 	label.BackgroundTransparency = 1
-
 	label.Font = Theme.BoldFont
 	label.TextColor3 = Theme.Colors.Accent
-	label.TextSize = 12
+	label.TextSize = 11
 	label.TextXAlignment = Enum.TextXAlignment.Left
+	-- Un design più pulito rispetto ai trattini grezzi
+	label.Text = "⚡  " .. string.upper(text)
+	label.Parent = container
 
-	label.Text = "── " .. string.upper(text) .. " ──"
-
-	label.Parent = parent
-
-	return label
-
+	return container
 end
 
 --------------------------------------------------------
 -- PARAGRAPH
 --------------------------------------------------------
-
 function Elements.Paragraph(parent, title, body)
-
-	local frame = CreateContainer(parent, 60)
+	local frame = CreateContainer(parent, 65)
 
 	local Title = Instance.new("TextLabel")
-	Title.Position = UDim2.new(0, 10, 0, 5)
-	Title.Size = UDim2.new(1, -20, 0, 18)
+	Title.Position = UDim2.new(0, 12, 0, 6)
+	Title.Size = UDim2.new(1, -24, 0, 18)
 	Title.BackgroundTransparency = 1
 	Title.Font = Theme.BoldFont
-	Title.TextColor3 = Theme.Colors.Accent
+	Title.TextColor3 = Theme.Colors.Text
 	Title.TextSize = 13
 	Title.TextXAlignment = Enum.TextXAlignment.Left
 	Title.Text = title
 	Title.Parent = frame
 
 	local Body = Instance.new("TextLabel")
-	Body.Position = UDim2.new(0, 10, 0, 24)
-	Body.Size = UDim2.new(1, -20, 1, -28)
+	Body.Position = UDim2.new(0, 12, 0, 24)
+	Body.Size = UDim2.new(1, -24, 1, -30)
 	Body.BackgroundTransparency = 1
 	Body.Font = Theme.Font
 	Body.TextWrapped = true
 	Body.TextColor3 = Theme.Colors.TextDark
-	Body.TextSize = 12
+	Body.TextSize = 11
 	Body.TextXAlignment = Enum.TextXAlignment.Left
 	Body.TextYAlignment = Enum.TextYAlignment.Top
 	Body.Text = body
 	Body.Parent = frame
 
 	return frame
-
 end
 
 --------------------------------------------------------
 -- LABEL
 --------------------------------------------------------
-
 function Elements.Label(parent, text)
+	local container = Instance.new("Frame")
+	container.Size = UDim2.new(0.95, 0, 0, 22)
+	container.BackgroundTransparency = 1
+	container.Parent = parent
 
 	local label = Instance.new("TextLabel")
-
-	label.Size = UDim2.new(0.95,0,0,22)
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.Position = UDim2.new(0, 4, 0, 0)
 	label.BackgroundTransparency = 1
-
 	label.Font = Theme.Font
 	label.TextSize = 12
 	label.TextColor3 = Theme.Colors.TextDark
 	label.TextXAlignment = Enum.TextXAlignment.Left
-
 	label.Text = text
+	label.Parent = container
 
-	label.Parent = parent
-
-	return label
-
+	return container
 end
 
 --------------------------------------------------------
 -- SEPARATOR
 --------------------------------------------------------
-
 function Elements.Separator(parent)
+	local container = Instance.new("Frame")
+	container.Size = UDim2.new(0.95, 0, 0, 10)
+	container.BackgroundTransparency = 1
+	container.Parent = parent
 
 	local line = Instance.new("Frame")
-
-	line.Size = UDim2.new(0.95,0,0,1)
+	line.Size = UDim2.new(1, 0, 0, 1)
+	line.Position = UDim2.new(0, 0, 0.5, 0)
 	line.BorderSizePixel = 0
 	line.BackgroundColor3 = Theme.Colors.Stroke
+	line.Parent = container
 
-	line.Parent = parent
-
-	return line
-
+	return container
 end
 
 --------------------------------------------------------
 -- BUTTON
 --------------------------------------------------------
-
 function Elements.Button(parent, text, callback)
-
-	local frame = CreateContainer(parent,35)
-
+	local frame = CreateContainer(parent, 36)
+	
 	local button = Instance.new("TextButton")
-
-	button.Size = UDim2.new(1,0,1,0)
+	button.Size = UDim2.new(1, 0, 1, 0)
 	button.BackgroundTransparency = 1
-
 	button.Font = Theme.SemiBoldFont
 	button.Text = text
 	button.TextSize = 13
 	button.TextColor3 = Theme.Colors.Text
-
 	button.Parent = frame
 
+	-- Effetto Hover/Click con transizione fluida del bordo acido
+	button.MouseEnter:Connect(function()
+		Utils.Tween(frame, {BackgroundColor3 = Theme.Colors.Tertiary})
+	end)
+
+	button.MouseLeave:Connect(function()
+		Utils.Tween(frame, {BackgroundColor3 = Theme.Colors.Secondary})
+	end)
+
 	button.MouseButton1Down:Connect(function()
-
-		Utils.Tween(frame,{
-			BackgroundColor3 = Theme.Colors.Accent
-		})
-
-		Utils.Tween(button,{
-			TextColor3 = Color3.new(0,0,0)
-		})
-
+		Utils.Tween(frame, {BackgroundColor3 = Theme.Colors.Accent})
+		Utils.Tween(button, {TextColor3 = Color3.new(0,0,0)})
 	end)
 
 	button.MouseButton1Up:Connect(function()
-
-		Utils.Tween(frame,{
-			BackgroundColor3 = Theme.Colors.Secondary
-		})
-
-		Utils.Tween(button,{
-			TextColor3 = Theme.Colors.Text
-		})
-
+		Utils.Tween(frame, {BackgroundColor3 = Theme.Colors.Tertiary})
+		Utils.Tween(button, {TextColor3 = Theme.Colors.Text})
 	end)
 
 	button.Activated:Connect(function()
-
-		if callback then
-			task.spawn(callback)
-		end
-
+		if callback then task.spawn(callback) end
 	end)
 
 	return frame
-
 end
 
 --------------------------------------------------------
 -- TOGGLE
 --------------------------------------------------------
-
 function Elements.Toggle(parent, title, default, callback)
-
-	local frame = CreateContainer(parent, 45)
+	local frame = CreateContainer(parent, 44)
 
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
-	label.Position = UDim2.new(0,10,0,0)
-	label.Size = UDim2.new(0.7,0,1,0)
+	label.Position = UDim2.new(0, 12, 0, 0)
+	label.Size = UDim2.new(0.7, 0, 1, 0)
 	label.Font = Theme.SemiBoldFont
 	label.Text = title
 	label.TextSize = 13
@@ -199,91 +179,68 @@ function Elements.Toggle(parent, title, default, callback)
 	label.Parent = frame
 
 	local bg = Instance.new("Frame")
-	bg.Size = UDim2.fromOffset(42,22)
-	bg.Position = UDim2.new(1,-52,.5,-11)
+	bg.Size = UDim2.fromOffset(38, 20)
+	bg.Position = UDim2.new(1, -50, 0.5, -10)
 	bg.BackgroundColor3 = Theme.Colors.Stroke
 	bg.BorderSizePixel = 0
 	bg.Parent = frame
 
-	Utils.Corner(bg, UDim.new(1,0))
+	Utils.Corner(bg, UDim.new(1, 0))
 
 	local knob = Instance.new("Frame")
-	knob.Size = UDim2.fromOffset(16,16)
-	knob.Position = UDim2.new(0,3,0,3)
-	knob.BackgroundColor3 = Color3.fromRGB(180,180,180)
+	knob.Size = UDim2.fromOffset(14, 14)
+	knob.Position = UDim2.new(0, 3, 0.5, -7)
+	knob.BackgroundColor3 = Color3.fromRGB(160, 160, 160)
 	knob.BorderSizePixel = 0
 	knob.Parent = bg
 
-	Utils.Corner(knob, UDim.new(1,0))
+	Utils.Corner(knob, UDim.new(1, 0))
 
 	local state = default == true
 
-	local function Update()
+	local function Update(animate)
+		local targetBg = state and Theme.Colors.Accent or Theme.Colors.Stroke
+		local targetKnobPos = state and UDim2.new(0, 21, 0.5, -7) or UDim2.new(0, 3, 0.5, -7)
+		local targetKnobColor = state and Color3.new(0, 0, 0) or Color3.fromRGB(180, 180, 180)
 
-		if state then
-
-			Utils.Tween(bg,{
-				BackgroundColor3 = Theme.Colors.Accent
-			})
-
-			Utils.Tween(knob,{
-				Position = UDim2.new(0,23,0,3),
-				BackgroundColor3 = Color3.new(1,1,1)
-			})
-
+		if animate then
+			Utils.Tween(bg, {BackgroundColor3 = targetBg})
+			Utils.Tween(knob, {Position = targetKnobPos, BackgroundColor3 = targetKnobColor})
 		else
-
-			Utils.Tween(bg,{
-				BackgroundColor3 = Theme.Colors.Stroke
-			})
-
-			Utils.Tween(knob,{
-				Position = UDim2.new(0,3,0,3),
-				BackgroundColor3 = Color3.fromRGB(180,180,180)
-			})
-
+			bg.BackgroundColor3 = targetBg
+			knob.Position = targetKnobPos
+			knob.BackgroundColor3 = targetKnobColor
 		end
-
 	end
 
-	Update()
+	Update(false)
 
 	local click = Instance.new("TextButton")
-	click.Size = UDim2.fromScale(1,1)
+	click.Size = UDim2.fromScale(1, 1)
 	click.BackgroundTransparency = 1
 	click.Text = ""
 	click.Parent = frame
 
 	click.Activated:Connect(function()
-
 		state = not state
-
-		Update()
-
-		if callback then
-			task.spawn(callback,state)
-		end
-
+		Update(true)
+		if callback then task.spawn(callback, state) end
 	end)
 
 	return frame
-
 end
 
 --------------------------------------------------------
 -- SLIDER
 --------------------------------------------------------
-
-function Elements.Slider(parent,title,min,max,default,callback)
-
+function Elements.Slider(parent, title, min, max, default, callback)
 	local UIS = game:GetService("UserInputService")
-
-	local frame = CreateContainer(parent,55)
+	local frame = CreateContainer(parent, 52)
 
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
-	label.Position = UDim2.new(0,10,0,4)
-	label.Size = UDim2.new(.7,0,0,18)
+	label.Position = UDim2.new(0, 12, 0, 6)
+	label.Size = UDim2.new(0.7, 0, 0, 18)
 	label.Font = Theme.SemiBoldFont
 	label.Text = title
 	label.TextSize = 13
@@ -293,8 +250,8 @@ function Elements.Slider(parent,title,min,max,default,callback)
 
 	local valueLabel = Instance.new("TextLabel")
 	valueLabel.BackgroundTransparency = 1
-	valueLabel.Position = UDim2.new(.7,0,0,4)
-	valueLabel.Size = UDim2.new(.3,-10,0,18)
+	valueLabel.Position = UDim2.new(0.7, 0, 0, 6)
+	valueLabel.Size = UDim2.new(0.3, -12, 0, 18)
 	valueLabel.Font = Theme.BoldFont
 	valueLabel.TextColor3 = Theme.Colors.Accent
 	valueLabel.TextXAlignment = Enum.TextXAlignment.Right
@@ -302,96 +259,67 @@ function Elements.Slider(parent,title,min,max,default,callback)
 	valueLabel.Parent = frame
 
 	local bar = Instance.new("Frame")
-	bar.Size = UDim2.new(.9,0,0,6)
-	bar.Position = UDim2.new(.05,0,.7,0)
+	bar.Size = UDim2.new(1, -24, 0, 5)
+	bar.Position = UDim2.new(0, 12, 0.7, 0)
 	bar.BackgroundColor3 = Theme.Colors.Stroke
 	bar.BorderSizePixel = 0
 	bar.Parent = frame
 
-	Utils.Corner(bar, UDim.new(1,0))
+	Utils.Corner(bar, UDim.new(1, 0))
 
 	local fill = Instance.new("Frame")
-	fill.Size = UDim2.new(math.clamp((default-min)/(max-min),0,1),0,1,0)
+	fill.Size = UDim2.new(math.clamp((default - min) / (max - min), 0, 1), 0, 1, 0)
 	fill.BackgroundColor3 = Theme.Colors.Accent
 	fill.BorderSizePixel = 0
 	fill.Parent = bar
 
-	Utils.Corner(fill, UDim.new(1,0))
+	Utils.Corner(fill, UDim.new(1, 0))
 
 	local dragging = false
 
 	local function SetValue(x)
-
-		local percent = math.clamp(
-			(x-bar.AbsolutePosition.X)/bar.AbsoluteSize.X,
-			0,
-			1
-		)
-
-		fill.Size = UDim2.new(percent,0,1,0)
-
-		local value = math.floor(min+((max-min)*percent))
-
+		local percent = math.clamp((x - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
+		fill.Size = UDim2.new(percent, 0, 1, 0)
+		local value = math.floor(min + ((max - min) * percent))
 		valueLabel.Text = tostring(value)
 
-		if callback then
-			task.spawn(callback,value)
-		end
-
+		if callback then task.spawn(callback, value) end
 	end
 
-	bar.InputBegan:Connect(function(input)
-
-		if input.UserInputType == Enum.UserInputType.MouseButton1
-		or input.UserInputType == Enum.UserInputType.Touch then
-
+	frame.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			SetValue(input.Position.X)
-
 		end
-
 	end)
 
 	UIS.InputChanged:Connect(function(input)
-
-		if dragging and (
-			input.UserInputType == Enum.UserInputType.MouseMovement
-			or input.UserInputType == Enum.UserInputType.Touch
-		) then
-
+		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			SetValue(input.Position.X)
-
 		end
-
 	end)
 
-	UIS.InputEnded:Connect(function(input)
-
-		if input.UserInputType == Enum.UserInputType.MouseButton1
-		or input.UserInputType == Enum.UserInputType.Touch then
-
+	local function EndDrag(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = false
-
 		end
+	end
 
-	end)
+	UIS.InputEnded:Connect(EndDrag)
 
 	return frame
-
 end
 
 --------------------------------------------------------
 -- TEXTBOX
 --------------------------------------------------------
-
-function Elements.TextBox(parent,title,placeholder,callback)
-
-	local frame = CreateContainer(parent,45)
+function Elements.TextBox(parent, title, placeholder, callback)
+	local frame = CreateContainer(parent, 44)
 
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
-	label.Position = UDim2.new(0,10,0,0)
-	label.Size = UDim2.new(0.4,0,1,0)
+	label.Position = UDim2.new(0, 12, 0, 0)
+	label.Size = UDim2.new(0.4, 0, 1, 0)
 	label.Font = Theme.SemiBoldFont
 	label.Text = title
 	label.TextSize = 13
@@ -400,141 +328,127 @@ function Elements.TextBox(parent,title,placeholder,callback)
 	label.Parent = frame
 
 	local box = Instance.new("TextBox")
-	box.Size = UDim2.new(0.45,0,0,26)
-	box.Position = UDim2.new(1,-170,0.5,-13)
+	box.Size = UDim2.new(0.45, 0, 0, 26)
+	box.Position = UDim2.new(1, -12, 0.5, -13)
+	box.AnchorPoint = Vector2.new(1, 0)
 	box.BackgroundColor3 = Theme.Colors.Tertiary
 	box.TextColor3 = Theme.Colors.Text
-	box.PlaceholderText = placeholder or ""
+	box.PlaceholderText = placeholder or "Scrivi..."
 	box.PlaceholderColor3 = Theme.Colors.Placeholder
 	box.Font = Theme.Font
 	box.TextSize = 12
 	box.ClearTextOnFocus = false
 	box.Parent = frame
 
-	Utils.Corner(box)
+	Utils.Corner(box, UDim.new(0, 4))
+	local stroke = Utils.Stroke(box, Theme.Colors.Stroke, 1)
+
+	-- Effetti visivi focus dinamici
+	box.Focused:Connect(function()
+		Utils.Tween(stroke, {Color = Theme.Colors.Accent})
+	end)
 
 	box.FocusLost:Connect(function(enterPressed)
-
-		if callback then
-			task.spawn(callback, box.Text, enterPressed)
-		end
-
+		Utils.Tween(stroke, {Color = Theme.Colors.Stroke})
+		if callback then task.spawn(callback, box.Text, enterPressed) end
 	end)
 
 	return frame
-
 end
 
 --------------------------------------------------------
 -- DROPDOWN
 --------------------------------------------------------
-
-function Elements.Dropdown(parent,title,options,callback)
-
-	local frame = CreateContainer(parent,40)
+function Elements.Dropdown(parent, title, options, callback)
+	local frame = CreateContainer(parent, 40)
 	frame.ClipsDescendants = true
 
 	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(1,0,0,40)
+	button.Size = UDim2.new(1, 0, 0, 40)
 	button.BackgroundTransparency = 1
-	button.Text = "  "..title.." ▼"
+	button.Text = "  " .. title .. "  ▼"
 	button.Font = Theme.SemiBoldFont
 	button.TextSize = 13
 	button.TextColor3 = Theme.Colors.Text
 	button.TextXAlignment = Enum.TextXAlignment.Left
 	button.Parent = frame
 
+	-- Aggiunto padding al testo del bottone principale
+	local btnPad = Instance.new("UIPadding")
+	btnPad.PaddingLeft = UDim.new(0, 12)
+	btnPad.Parent = button
+
 	local opened = false
 
 	local list = Instance.new("ScrollingFrame")
 	list.Visible = false
-	list.Position = UDim2.new(0,0,0,42)
-	list.Size = UDim2.new(1,0,0,0)
-	list.CanvasSize = UDim2.new(0,0,0,#options*30)
-	list.ScrollBarThickness = 3
+	list.Position = UDim2.new(0, 12, 0, 42)
+	list.Size = UDim2.new(1, -24, 0, 0)
+	list.CanvasSize = UDim2.new(0, 0, 0, #options * 28)
+	list.ScrollBarThickness = 2
 	list.ScrollBarImageColor3 = Theme.Colors.Accent
-	list.BackgroundColor3 = Theme.Colors.Secondary
+	list.BackgroundTransparency = 1
 	list.BorderSizePixel = 0
 	list.Parent = frame
 
-	Utils.Corner(list)
-	Utils.Stroke(list,Theme.Colors.Stroke)
-
 	local layout = Instance.new("UIListLayout")
+	layout.Padding = UDim.new(0, 2)
 	layout.Parent = list
 
-	for _,option in ipairs(options) do
-
+	for _, option in ipairs(options) do
 		local opt = Instance.new("TextButton")
-		opt.Size = UDim2.new(1,0,0,30)
-		opt.BackgroundTransparency = 1
+		opt.Size = UDim2.new(1, 0, 0, 26)
+		opt.BackgroundColor3 = Theme.Colors.Tertiary
 		opt.Font = Theme.Font
-		opt.Text = "   "..tostring(option)
-		opt.TextColor3 = Theme.Colors.Text
+		opt.Text = tostring(option)
+		opt.TextColor3 = Theme.Colors.TextDark
 		opt.TextSize = 12
-		opt.TextXAlignment = Enum.TextXAlignment.Left
 		opt.Parent = list
 
-		opt.Activated:Connect(function()
+		Utils.Corner(opt, UDim.new(0, 4))
 
-			button.Text = "  "..tostring(option).." ▼"
-
-			opened = false
-
-			list.Visible = false
-			list.Size = UDim2.new(1,0,0,0)
-
-			frame.Size = UDim2.new(.95,0,0,40)
-
-			if callback then
-				task.spawn(callback, option)
-			end
-
+		opt.MouseEnter:Connect(function()
+			Utils.Tween(opt, {TextColor3 = Theme.Colors.Accent})
+		end)
+		opt.MouseLeave:Connect(function()
+			Utils.Tween(opt, {TextColor3 = Theme.Colors.TextDark})
 		end)
 
+		opt.Activated:Connect(function()
+			button.Text = "  " .. tostring(option) .. "  ▼"
+			opened = false
+			list.Visible = false
+			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
+			if callback then task.spawn(callback, option) end
+		end)
 	end
 
 	button.Activated:Connect(function()
-
 		opened = not opened
-
 		if opened then
-
-			local height = math.min(#options*30,120)
-
+			local height = math.min(#options * 28 + 5, 115)
 			list.Visible = true
-			list.Size = UDim2.new(1,0,0,height)
-
-			frame.Size = UDim2.new(.95,0,0,height+45)
-
+			list.Size = UDim2.new(1, -24, 0, height)
+			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, height + 50)})
 		else
-
 			list.Visible = false
-			list.Size = UDim2.new(1,0,0,0)
-
-			frame.Size = UDim2.new(.95,0,0,40)
-
+			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
 		end
-
 	end)
 
 	return frame
-
 end
 
 --------------------------------------------------------
 -- KEYBIND
 --------------------------------------------------------
-
-function Elements.Keybind(parent,title,defaultKey,callback)
-
+function Elements.Keybind(parent, title, defaultKey, callback)
 	local UIS = game:GetService("UserInputService")
-
-	local frame = CreateContainer(parent,40)
+	local frame = CreateContainer(parent, 40)
 
 	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(.6,0,1,0)
-	label.Position = UDim2.new(0,10,0,0)
+	label.Size = UDim2.new(0.6, 0, 1, 0)
+	label.Position = UDim2.new(0, 12, 0, 0)
 	label.BackgroundTransparency = 1
 	label.Font = Theme.SemiBoldFont
 	label.Text = title
@@ -544,61 +458,44 @@ function Elements.Keybind(parent,title,defaultKey,callback)
 	label.Parent = frame
 
 	local bind = Instance.new("TextButton")
-	bind.Size = UDim2.new(0,80,0,24)
-	bind.Position = UDim2.new(1,-90,.5,-12)
+	bind.Size = UDim2.fromOffset(75, 24)
+	bind.Position = UDim2.new(1, -12, 0.5, -12)
+	bind.AnchorPoint = Vector2.new(1, 0)
 	bind.BackgroundColor3 = Theme.Colors.Tertiary
 	bind.Font = Theme.BoldFont
 	bind.TextColor3 = Theme.Colors.Accent
-	bind.TextSize = 12
+	bind.TextSize = 11
 	bind.Text = defaultKey.Name
 	bind.Parent = frame
 
-	Utils.Corner(bind)
+	Utils.Corner(bind, UDim.new(0, 4))
+	local stroke = Utils.Stroke(bind, Theme.Colors.Stroke, 1)
 
 	local current = defaultKey
 	local waiting = false
 
 	bind.Activated:Connect(function()
-
 		waiting = true
 		bind.Text = "..."
-
+		Utils.Tween(stroke, {Color = Theme.Colors.Accent})
 	end)
 
-	UIS.InputBegan:Connect(function(input,gp)
-
-		if gp then
-			return
-		end
+	UIS.InputBegan:Connect(function(input, gp)
+		if gp then return end
 
 		if waiting then
-
 			if input.UserInputType == Enum.UserInputType.Keyboard then
-
 				waiting = false
 				current = input.KeyCode
-
 				bind.Text = current.Name
-
+				Utils.Tween(stroke, {Color = Theme.Colors.Stroke})
 			end
-
 		elseif input.KeyCode == current then
-
-			if callback then
-				task.spawn(callback,current)
-			end
-
+			if callback then task.spawn(callback, current) end
 		end
-
 	end)
 
 	return frame
-
 end
-
---------------------------------------------------------
--- RETURN
---------------------------------------------------------
-
 
 return Elements
