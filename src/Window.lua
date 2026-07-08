@@ -1,5 +1,5 @@
 --==============================================================================
--- ScorpioX Window Engine (Con Supporto Icone)
+-- ScorpioX Window Engine (Con Supporto Icone a Grandezza Pulsante)
 --==============================================================================
 
 local Players = game:GetService("Players")
@@ -85,7 +85,7 @@ function Window.new(config)
 
 	self.TopBar = TopBar
 
-	-- MODIFICATO: Se c'è un'icona, crea il componente ImageLabel nell'angolo della TopBar
+	-- Se c'è un'icona, crea il componente ImageLabel nell'angolo della TopBar
 	local titleOffset = 15
 	if iconId then
 		local TopBarIcon = Instance.new("ImageLabel")
@@ -131,17 +131,26 @@ function Window.new(config)
 	Utils.Corner(Toggle, UDim.new(1, 0))
 	Utils.Stroke(Toggle, Theme.Colors.Accent, 1.5)
 
-	-- MODIFICATO: Se c'è un'icona la mette al centro del pulsante rotondo, altrimenti mette il testo "SCO"
+	-- MODIFICATO: L'icona adesso occupa il 100% della grandezza del pulsante con un padding interno controllato
 	if iconId then
 		Toggle.Text = ""
+		
 		local ButtonIcon = Instance.new("ImageLabel")
 		ButtonIcon.Name = "ButtonIcon"
-		ButtonIcon.Size = UDim2.fromOffset(28, 28)
-		ButtonIcon.Position = UDim2.new(0.5, -14, 0.5, -14)
+		ButtonIcon.Size = UDim2.fromScale(1, 1) -- Prende tutta la grandezza del pulsante (stessa grandezza)
+		ButtonIcon.Position = UDim2.new(0, 0, 0, 0)
 		ButtonIcon.BackgroundTransparency = 1
 		ButtonIcon.Image = "rbxassetid://" .. iconId
 		ButtonIcon.ImageColor3 = Theme.Colors.Text -- Icona bianca/chiara dentro il pulsante
 		ButtonIcon.Parent = Toggle
+
+		-- Aggiunge un padding interno per evitare che l'icona tocchi i bordi del cerchio
+		local Padding = Instance.new("UIPadding")
+		Padding.PaddingTop = UDim.new(0, 12)
+		Padding.PaddingBottom = UDim.new(0, 12)
+		Padding.PaddingLeft = UDim.new(0, 12)
+		Padding.PaddingRight = UDim.new(0, 12)
+		Padding.Parent = Toggle
 	else
 		Toggle.Text = "SCO"
 		Toggle.Font = Theme.BoldFont
