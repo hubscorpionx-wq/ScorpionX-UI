@@ -8,16 +8,20 @@ local function Get(name)
     return loadstring(game:HttpGet(BASE .. name .. ".lua"))()
 end
 
--- Carica i moduli base
-getgenv().ScorpioXModules = {}
+-- Moduli condivisi
+local Modules = {}
 
-getgenv().ScorpioXModules.Theme = Get("Theme")
-getgenv().ScorpioXModules.Utils = Get("Utils")
+Modules.Theme = Get("Theme")
+Modules.Utils = Get("Utils")
 
--- Carica gli altri moduli
-getgenv().ScorpioXModules.Window = Get("Window")
-getgenv().ScorpioXModules.Elements = Get("Elements")
-getgenv().ScorpioXModules.Notifications = Get("Notifications")
+getgenv().ScorpioXModules = Modules
 
--- Restituisce la libreria
-return Get("init")
+-- Moduli principali
+Modules.Window = Get("Window")
+Modules.Elements = Get("Elements")
+Modules.Notifications = Get("Notifications")
+
+-- Libreria
+local Library = Get("init")(Modules.Window, Modules.Elements, Modules.Notifications)
+
+return Library
