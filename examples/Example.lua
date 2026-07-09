@@ -44,6 +44,7 @@ local Library = Get("init")(WindowFile, ElementsFile, NotificationsFile)
 
 local Window = Library:CreateWindow({
     Title = "Scorpion X Hub",
+    Subtitle = "v1.0.2 BETA",
     ToggleKey = Enum.KeyCode.RightControl, -- Tasto predefinito per PC
     Size = UDim2.fromOffset(450, 300),     -- Dimensioni della finestra
     Icon = "96045739039093"                 -- ID Icona di ScorpioX
