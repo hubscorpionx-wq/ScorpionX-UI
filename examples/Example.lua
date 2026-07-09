@@ -1,5 +1,5 @@
 --==============================================================================
--- SCORPIOX HUB - SCRIPT DI ESEMPIO COMPLETO
+-- SCORPION X HUB - SCRIPT DI ESEMPIO COMPLETO
 --==============================================================================
 
 -- 1. CARICAMENTO DEI MODULI TRAMITE IL LOADER OTTIMIZZATO
