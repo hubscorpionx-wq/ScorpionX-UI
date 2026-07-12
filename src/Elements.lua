@@ -1,9 +1,9 @@
 --==============================================================================
--- ScorpioX Modern Elements Engine (Premium Dark/Neon UI - Fix)
+-- ScorpioX Modern Elements Engine (Premium Dark/Neon UI - Fixed & Complete)
 --==============================================================================
 
 local Modules = getgenv().ScorpioXModules
-local Theme = Modules.Theme -- Ripristinato come l'originale funzionante
+local Theme = Modules.Theme 
 local Utils = Modules.Utils
 
 local Elements = {}
@@ -20,6 +20,66 @@ local function CreateContainer(parent, height)
 	Utils.Stroke(frame, Theme.Colors.Stroke)
 
 	return frame
+end
+
+--------------------------------------------------------
+-- MAIN WINDOW CREATION (Risolve l'errore "nil value")
+--------------------------------------------------------
+function Elements.CreateWindow(title)
+	local ScreenGui = Instance.new("ScreenGui")
+	ScreenGui.Name = "ScorpioX_UI"
+	
+	-- Sicurezza per l'esecuzione in CoreGui o PlayerGui
+	local success, err = pcall(function()
+		ScreenGui.Parent = game:GetService("CoreGui")
+	end)
+	if not success then
+		ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+	end
+
+	local MainFrame = Instance.new("Frame")
+	MainFrame.Size = UDim2.new(0, 450, 0, 350)
+	MainFrame.Position = UDim2.new(0.5, -225, 0.5, -175)
+	MainFrame.BackgroundColor3 = Theme.Colors.Background or Color3.fromRGB(20, 20, 20)
+	MainFrame.BorderSizePixel = 0
+	MainFrame.Parent = ScreenGui
+
+	Utils.Corner(MainFrame)
+	Utils.Stroke(MainFrame, Theme.Colors.Stroke)
+
+	-- Titolo dell'Hub
+	local TitleLabel = Instance.new("TextLabel")
+	TitleLabel.Size = UDim2.new(1, -20, 0, 35)
+	TitleLabel.Position = UDim2.new(0, 15, 0, 0)
+	TitleLabel.BackgroundTransparency = 1
+	TitleLabel.Font = Theme.BoldFont
+	TitleLabel.TextColor3 = Theme.Colors.Text
+	TitleLabel.TextSize = 14
+	TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+	TitleLabel.Text = title or "ScorpioX Hub"
+	TitleLabel.Parent = MainFrame
+
+	-- Container interno con Scrolling per gli elementi
+	local Container = Instance.new("ScrollingFrame")
+	Container.Size = UDim2.new(1, -20, 1, -50)
+	Container.Position = UDim2.new(0, 10, 0, 40)
+	Container.BackgroundTransparency = 1
+	Container.BorderSizePixel = 0
+	Container.ScrollBarThickness = 3
+	Container.ScrollBarImageColor3 = Theme.Colors.Accent
+	Container.Parent = MainFrame
+
+	local Layout = Instance.new("UIListLayout")
+	Layout.Padding = UDim.new(0, 6)
+	Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	Layout.Parent = Container
+
+	-- Auto-aggiornamento della dimensione dello scrolling
+	Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		Container.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 10)
+	end)
+
+	return Container
 end
 
 --------------------------------------------------------
@@ -356,7 +416,7 @@ function Elements.Dropdown(parent, title, options, callback)
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(1, 0, 0, 40)
 	button.BackgroundTransparency = 1
-	button.Text = "  " .. title .. "  ▼" -- Freccia iniziale (chiuso)
+	button.Text = "  " .. title .. "  ▼"
 	button.Font = Theme.SemiBoldFont
 	button.TextSize = 13
 	button.TextColor3 = Theme.Colors.Text
@@ -404,8 +464,7 @@ function Elements.Dropdown(parent, title, options, callback)
 		end)
 
 		opt.Activated:Connect(function()
-			-- Quando si seleziona un'opzione, il menu si chiude -> Freccia in giù ▼
-			button.Text = "  " .. tostring(option) .. "  ▼"
+			button.Text = "  " .. tostring(option) .. "  ▼"
 			opened = false
 			list.Visible = false
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
@@ -416,15 +475,13 @@ function Elements.Dropdown(parent, title, options, callback)
 	button.Activated:Connect(function()
 		opened = not opened
 		if opened then
-			-- Menu aperto -> Freccia in su ▲
-			button.Text = "  " .. title .. "  ▲"
+			button.Text = "  " .. title .. "  ▲"
 			local height = math.min(#options * 28 + 5, 115)
 			list.Visible = true
 			list.Size = UDim2.new(1, -24, 0, height)
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, height + 50)})
 		else
-			-- Menu chiuso -> Freccia in giù ▼
-			button.Text = "  " .. title .. "  ▼"
+			button.Text = "  " .. title .. "  ▼"
 			list.Visible = false
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
 		end
@@ -459,7 +516,7 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 	bind.Font = Theme.BoldFont
 	bind.TextColor3 = Theme.Colors.Accent
 	bind.TextSize = 11
-	bind.Text = defaultKey.Name
+	bind.Text = defaultKey and defaultKey.Name or "None"
 	bind.Parent = frame
 
 	Utils.Corner(bind)
@@ -482,7 +539,6 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 				current = input.KeyCode
 				bind.Text = current.Name
 			end
-		-- FIX: Questo invia l'input aggiornato alla callback dell'utente quando viene premuto!
 		elseif input.KeyCode == current then
 			if callback then task.spawn(callback, current) end
 		end
