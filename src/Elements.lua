@@ -160,7 +160,7 @@ function Elements.Button(parent, text, callback)
 end
 
 --------------------------------------------------------
--- TOGGLE
+-- TOGGLE (AGGIORNATO)
 --------------------------------------------------------
 function Elements.Toggle(parent, title, default, callback)
 	local frame = CreateContainer(parent, 44)
@@ -225,7 +225,17 @@ function Elements.Toggle(parent, title, default, callback)
 		if callback then task.spawn(callback, state) end
 	end)
 
-	return frame
+	-- Ritorna una tabella per controllare il toggle via codice
+	return {
+		Instance = frame,
+		Set = function(newState)
+			if state ~= newState then
+				state = newState
+				Update(true)
+				if callback then task.spawn(callback, state) end
+			end
+		end
+	end
 end
 
 --------------------------------------------------------
