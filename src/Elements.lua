@@ -3,7 +3,7 @@
 --==============================================================================
 
 local Modules = getgenv().ScorpioXModules
-local Theme = Modules.Theme -- Ripristinato come l'originale funzionante
+local Theme = Modules.Theme
 local Utils = Modules.Utils
 
 local Elements = {}
@@ -160,7 +160,7 @@ function Elements.Button(parent, text, callback)
 end
 
 --------------------------------------------------------
--- TOGGLE (AGGIORNATO)
+-- TOGGLE (AGGIORNATO CON FIX DI SPEGNIMENTO)
 --------------------------------------------------------
 function Elements.Toggle(parent, title, default, callback)
 	local frame = CreateContainer(parent, 44)
@@ -225,7 +225,7 @@ function Elements.Toggle(parent, title, default, callback)
 		if callback then task.spawn(callback, state) end
 	end)
 
-	-- Ritorna una tabella per controllare il toggle via codice
+	-- Ritorna una tabella per controllare il toggle sia come istanza che come logica
 	return {
 		Instance = frame,
 		Set = function(newState)
@@ -366,7 +366,7 @@ function Elements.Dropdown(parent, title, options, callback)
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(1, 0, 0, 40)
 	button.BackgroundTransparency = 1
-	button.Text = "  " .. title .. "  ▼" -- Freccia iniziale (chiuso)
+	button.Text = "  " .. title .. "  ▼"
 	button.Font = Theme.SemiBoldFont
 	button.TextSize = 13
 	button.TextColor3 = Theme.Colors.Text
@@ -414,7 +414,6 @@ function Elements.Dropdown(parent, title, options, callback)
 		end)
 
 		opt.Activated:Connect(function()
-			-- Quando si seleziona un'opzione, il menu si chiude -> Freccia in giù ▼
 			button.Text = "  " .. tostring(option) .. "  ▼"
 			opened = false
 			list.Visible = false
@@ -426,14 +425,12 @@ function Elements.Dropdown(parent, title, options, callback)
 	button.Activated:Connect(function()
 		opened = not opened
 		if opened then
-			-- Menu aperto -> Freccia in su ▲
 			button.Text = "  " .. title .. "  ▲"
 			local height = math.min(#options * 28 + 5, 115)
 			list.Visible = true
 			list.Size = UDim2.new(1, -24, 0, height)
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, height + 50)})
 		else
-			-- Menu chiuso -> Freccia in giù ▼
 			button.Text = "  " .. title .. "  ▼"
 			list.Visible = false
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
@@ -492,7 +489,6 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 				current = input.KeyCode
 				bind.Text = current.Name
 			end
-		-- FIX: Questo invia l'input aggiornato alla callback dell'utente quando viene premuto!
 		elseif input.KeyCode == current then
 			if callback then task.spawn(callback, current) end
 		end
