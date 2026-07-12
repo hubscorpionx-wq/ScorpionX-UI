@@ -1,5 +1,5 @@
 --==============================================================================
--- SCORPION X HUB - SCRIPT DI ESEMPIO COMPLETO
+-- SCORPION X HUB - SCRIPT PRINCIPALE COMPLETO (FIXED)
 --==============================================================================
 
 -- 1. CARICAMENTO DEI MODULI TRAMITE IL LOADER OTTIMIZZATO
@@ -86,7 +86,37 @@ Main:Button("Print Hello", function()
     print("Hello World")
 end)
 
--- TOGGLE: Interruttore On/Off
+-- TOGGLE AUTO-DISATTIVANTE: Conta fino a 10 e usa il nuovo wrapper :Set(false)
+local conteggioAttivo = false
+local toggleConta
+
+toggleConta = Main:Toggle("Timer 10 Secondi", false, function(state)
+    conteggioAttivo = state
+
+    if conteggioAttivo then
+        task.spawn(function()
+            print("Conteggio avviato...")
+            
+            for i = 1, 10 do
+                -- Se l'utente spegne manualmente il toggle durante il conteggio, si ferma
+                if not conteggioAttivo then break end
+                
+                print("Tempo trascorso: " .. i .. " secondi")
+                task.wait(1)
+            end
+            
+            -- Se il conteggio è terminato ed è ancora attivo logica, spegne visivamente il toggle
+            if conteggioAttivo then
+                print("Tempo scaduto! Disattivazione...")
+                toggleConta:Set(false) -- Ora chiama il metodo corretto dall'oggetto del modulo Elements
+            end
+        end)
+    else
+        print("Conteggio interrotto manualmente.")
+    end
+end)
+
+-- TOGGLE: Interruttore On/Off classico
 Main:Toggle("God Mode", false, function(state)
     print("Toggle:", state)
 end)
@@ -129,4 +159,3 @@ end)
 Misc:Button("Rimuovi Interfaccia", function()
     Window:Destroy()
 end)
-
