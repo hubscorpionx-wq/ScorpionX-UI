@@ -492,5 +492,3 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 end
 
 return Elements
-
-e da qua che si gestisce tipo 
