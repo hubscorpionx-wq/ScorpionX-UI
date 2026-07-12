@@ -220,7 +220,7 @@ function Elements.Button(parent, text, callback)
 end
 
 --------------------------------------------------------
--- TOGGLE
+-- TOGGLE (Versione Corretta con supporto al metodo :Set)
 --------------------------------------------------------
 function Elements.Toggle(parent, title, default, callback)
 	local frame = CreateContainer(parent, 44)
@@ -285,9 +285,32 @@ function Elements.Toggle(parent, title, default, callback)
 		if callback then task.spawn(callback, state) end
 	end)
 
-	return frame
-end
+	-- ==========================================
+	-- FIX: Creiamo l'oggetto personalizzato con il metodo :Set()
+	-- ==========================================
+	local ToggleObject = {}
+	ToggleObject.Instance = frame -- Mantiene comunque il riferimento al frame se serve
 
+	function ToggleObject:Set(v)
+		if state ~= v then
+			state = v
+			Update(true)
+			if callback then task.spawn(callback, state) end
+		end
+	end
+
+	-- Permette al codice legacy di trattare l'oggetto come se fosse il frame originale
+	setmetatable(ToggleObject, {
+		__index = function(_, key)
+			return frame[key]
+		end,
+		__newindex = function(_, key, value)
+			frame[key] = value
+		end
+	})
+
+	return ToggleObject
+end
 --------------------------------------------------------
 -- SLIDER
 --------------------------------------------------------
