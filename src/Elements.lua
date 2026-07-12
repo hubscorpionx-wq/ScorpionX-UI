@@ -3,12 +3,11 @@
 --==============================================================================
 
 local Modules = getgenv().ScorpioXModules
-local Theme = Modules.Theme -- Ripristinato come l'originale funzionante
+local Theme = Modules.Theme
 local Utils = Modules.Utils
 
 local Elements = {}
 
--- Funzione helper per creare i container degli elementi con stile coerente
 local function CreateContainer(parent, height)
 	local frame = Instance.new("Frame")
 	frame.Size = UDim2.new(0.95, 0, 0, height)
@@ -22,9 +21,6 @@ local function CreateContainer(parent, height)
 	return frame
 end
 
---------------------------------------------------------
--- SECTION
---------------------------------------------------------
 function Elements.Section(parent, text)
 	local container = Instance.new("Frame")
 	container.Size = UDim2.new(0.95, 0, 0, 30)
@@ -44,9 +40,6 @@ function Elements.Section(parent, text)
 	return container
 end
 
---------------------------------------------------------
--- PARAGRAPH
---------------------------------------------------------
 function Elements.Paragraph(parent, title, body)
 	local frame = CreateContainer(parent, 65)
 
@@ -77,9 +70,6 @@ function Elements.Paragraph(parent, title, body)
 	return frame
 end
 
---------------------------------------------------------
--- LABEL
---------------------------------------------------------
 function Elements.Label(parent, text)
 	local container = Instance.new("Frame")
 	container.Size = UDim2.new(0.95, 0, 0, 22)
@@ -100,9 +90,6 @@ function Elements.Label(parent, text)
 	return container
 end
 
---------------------------------------------------------
--- SEPARATOR
---------------------------------------------------------
 function Elements.Separator(parent)
 	local container = Instance.new("Frame")
 	container.Size = UDim2.new(0.95, 0, 0, 10)
@@ -119,9 +106,6 @@ function Elements.Separator(parent)
 	return container
 end
 
---------------------------------------------------------
--- BUTTON
---------------------------------------------------------
 function Elements.Button(parent, text, callback)
 	local frame = CreateContainer(parent, 36)
 	
@@ -160,7 +144,7 @@ function Elements.Button(parent, text, callback)
 end
 
 --------------------------------------------------------
--- TOGGLE
+-- TOGGLE CON FIX OPTICAL RESET
 --------------------------------------------------------
 function Elements.Toggle(parent, title, default, callback)
 	local frame = CreateContainer(parent, 44)
@@ -225,12 +209,15 @@ function Elements.Toggle(parent, title, default, callback)
 		if callback then task.spawn(callback, state) end
 	end)
 
+	-- FIX ESTERNO PER AGGIORNARE LO STATO VISIVO DEL TOGGLE
+	function frame:SetState(newState)
+		state = newState
+		Update(true)
+	end
+
 	return frame
 end
 
---------------------------------------------------------
--- SLIDER
---------------------------------------------------------
 function Elements.Slider(parent, title, min, max, default, callback)
 	local UIS = game:GetService("UserInputService")
 	local frame = CreateContainer(parent, 52)
@@ -306,9 +293,6 @@ function Elements.Slider(parent, title, min, max, default, callback)
 	return frame
 end
 
---------------------------------------------------------
--- TEXTBOX
---------------------------------------------------------
 function Elements.TextBox(parent, title, placeholder, callback)
 	local frame = CreateContainer(parent, 44)
 
@@ -346,9 +330,6 @@ function Elements.TextBox(parent, title, placeholder, callback)
 	return frame
 end
 
-----------------------------------------------------------
--- DROPDOWN
---------------------------------------------------------
 function Elements.Dropdown(parent, title, options, callback)
 	local frame = CreateContainer(parent, 40)
 	frame.ClipsDescendants = true
@@ -356,7 +337,7 @@ function Elements.Dropdown(parent, title, options, callback)
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(1, 0, 0, 40)
 	button.BackgroundTransparency = 1
-	button.Text = "  " .. title .. "  ▼" -- Freccia iniziale (chiuso)
+	button.Text = "  " .. title .. "  ▼"
 	button.Font = Theme.SemiBoldFont
 	button.TextSize = 13
 	button.TextColor3 = Theme.Colors.Text
@@ -404,8 +385,7 @@ function Elements.Dropdown(parent, title, options, callback)
 		end)
 
 		opt.Activated:Connect(function()
-			-- Quando si seleziona un'opzione, il menu si chiude -> Freccia in giù ▼
-			button.Text = "  " .. tostring(option) .. "  ▼"
+			button.Text = "  " .. tostring(option) .. "  ▼"
 			opened = false
 			list.Visible = false
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
@@ -416,15 +396,13 @@ function Elements.Dropdown(parent, title, options, callback)
 	button.Activated:Connect(function()
 		opened = not opened
 		if opened then
-			-- Menu aperto -> Freccia in su ▲
-			button.Text = "  " .. title .. "  ▲"
+			button.Text = "  " .. title .. "  ▲"
 			local height = math.min(#options * 28 + 5, 115)
 			list.Visible = true
 			list.Size = UDim2.new(1, -24, 0, height)
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, height + 50)})
 		else
-			-- Menu chiuso -> Freccia in giù ▼
-			button.Text = "  " .. title .. "  ▼"
+			button.Text = "  " .. title .. "  ▼"
 			list.Visible = false
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
 		end
@@ -433,9 +411,6 @@ function Elements.Dropdown(parent, title, options, callback)
 	return frame
 end
 
---------------------------------------------------------
--- KEYBIND
---------------------------------------------------------
 function Elements.Keybind(parent, title, defaultKey, callback)
 	local UIS = game:GetService("UserInputService")
 	local frame = CreateContainer(parent, 40)
@@ -482,7 +457,6 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 				current = input.KeyCode
 				bind.Text = current.Name
 			end
-		-- FIX: Questo invia l'input aggiornato alla callback dell'utente quando viene premuto!
 		elseif input.KeyCode == current then
 			if callback then task.spawn(callback, current) end
 		end
