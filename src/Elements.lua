@@ -431,7 +431,7 @@ function Elements.TextBox(parent, title, placeholder, callback)
 end
 
 ----------------------------------------------------------
--- DROPDOWN (Con Aggiornamento Dinamico della Selezione)
+-- DROPDOWN (Con Aggiornamento Dinamico e Rich Text Verde per i Numeri)
 ----------------------------------------------------------
 function Elements.Dropdown(parent, title, options, callback)
 	local frame = CreateContainer(parent, 40)
@@ -446,6 +446,7 @@ function Elements.Dropdown(parent, title, options, callback)
 	button.TextSize = 13
 	button.TextColor3 = Theme.Colors.Text
 	button.TextXAlignment = Enum.TextXAlignment.Left
+	button.RichText = true -- ABILITA IL RICH TEXT SUL BOTTONE PRINCIPALE
 	button.Parent = frame
 
 	local btnPad = Instance.new("UIPadding")
@@ -454,7 +455,7 @@ function Elements.Dropdown(parent, title, options, callback)
 
 	local opened = false
 	local currentOptions = options or {}
-	local currentSelection = nil -- Memorizza l'opzione attualmente selezionata (es. "Copper x2")
+	local currentSelection = nil -- Memorizza il testo originale non formattato (es. "Copper x2")
 
 	local list = Instance.new("ScrollingFrame")
 	list.Visible = false
@@ -471,15 +472,33 @@ function Elements.Dropdown(parent, title, options, callback)
 	layout.Padding = UDim.new(0, 2)
 	layout.Parent = list
 
+	-- Funzione interna per colorare di verde qualsiasi numero/quantità alla fine della stringa
+	local function formatWithGreenNumber(text)
+		local str = tostring(text)
+		-- Cerca formati come " x9", " [9]", " (9)", " 9", " - 9" alla fine della stringa
+		-- Cattura il separatore/simbolo iniziale e il numero interno
+		local pattern = "(%s*[x%[%(%-]*%s*)(%d+)([%]%)]*)$"
+		local prefix, number, suffix = str:match(pattern)
+		
+		if number then
+			local mainText = str:gsub(pattern, "")
+			-- Avvolge la quantità in un tag di colore verde neon (es. #00FF7F o il tuo Accent se preferisci)
+			local greenColor = "rgb(0, 255, 127)" 
+			return mainText .. prefix .. "<font color=\"" .. greenColor .. "\">" .. number .. "</font>" .. suffix
+		end
+		return str
+	end
+
 	-- Helper per creare un'opzione
 	local function createOptionButton(optionText)
 		local opt = Instance.new("TextButton")
 		opt.Size = UDim2.new(1, 0, 0, 26)
 		opt.BackgroundColor3 = Theme.Colors.Tertiary
 		opt.Font = Theme.Font
-		opt.Text = tostring(optionText)
+		opt.Text = formatWithGreenNumber(optionText) -- Applica la formattazione verde
 		opt.TextColor3 = Theme.Colors.TextDark
 		opt.TextSize = 12
+		opt.RichText = true -- ABILITA IL RICH TEXT SULLE OPZIONI
 		opt.Parent = list
 
 		Utils.Corner(opt)
@@ -492,13 +511,14 @@ function Elements.Dropdown(parent, title, options, callback)
 		end)
 
 		opt.Activated:Connect(function()
-			local activeText = opt.Text
-			currentSelection = activeText -- Salva la selezione corrente
-			button.Text = "  " .. activeText .. "  ▼" -- Imposta il testo sul bottone principale
+			-- Salviamo il valore REALE senza i tag XML del Rich Text per evitare bug di lettura nello script di vendita
+			currentSelection = optionText 
+			
+			button.Text = "  " .. formatWithGreenNumber(optionText) .. "  ▼"
 			opened = false
 			list.Visible = false
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
-			if callback then task.spawn(callback, activeText) end
+			if callback then task.spawn(callback, optionText) end
 		end)
 
 		return opt
@@ -508,26 +528,24 @@ function Elements.Dropdown(parent, title, options, callback)
 	local function updateList(newOptions)
 		currentOptions = newOptions or {}
 
-		-- 1. Trova se la risorsa precedentemente selezionata esiste ancora nella nuova lista (anche se la quantità è cambiata!)
-		-- Es: se prima avevamo selezionato "Copper x2" e ora c'è "Copper x10", vogliamo identificare che la selezione è ancora "Copper"
+		-- 1. Trova se la risorsa precedentemente selezionata esiste ancora
 		local updatedSelectionText = nil
 		if currentSelection then
-			local cleanOldName = currentSelection:gsub(" x%d+$", "") -- Estrae "Copper" da "Copper x2"
+			local cleanOldName = currentSelection:gsub("%s*[x%[%(%-]*%s*%d+[%]%)]*$", "") -- Estrae "Copper" in modo generico
 			for _, newOpt in ipairs(currentOptions) do
-				local cleanNewName = tostring(newOpt):gsub(" x%d+$", "") -- Estrae "Copper" da "Copper x10"
+				local cleanNewName = tostring(newOpt):gsub("%s*[x%[%(%-]*%s*%d+[%]%)]*$", "")
 				if cleanOldName == cleanNewName then
-					updatedSelectionText = tostring(newOpt) -- Trovato! Sarà "Copper x10"
+					updatedSelectionText = tostring(newOpt)
 					break
 				end
 			end
 		end
 
-		-- Se la risorsa precedentemente selezionata esiste ancora ma con quantità aggiornata, sincronizziamo lo stato interno
 		if updatedSelectionText then
 			currentSelection = updatedSelectionText
 		end
 
-		-- 2. Recuperiamo solo i bottoni TextButton esistenti per aggiornarli
+		-- 2. Recuperiamo i bottoni esistenti
 		local existingButtons = {}
 		for _, child in ipairs(list:GetChildren()) do
 			if child:IsA("TextButton") then
@@ -543,7 +561,7 @@ function Elements.Dropdown(parent, title, options, callback)
 
 			if newOptText ~= nil then
 				if btn ~= nil then
-					btn.Text = tostring(newOptText)
+					btn.Text = formatWithGreenNumber(newOptText) -- Aggiorna applicando il verde
 					btn.Visible = true
 				else
 					createOptionButton(newOptText)
@@ -556,16 +574,13 @@ function Elements.Dropdown(parent, title, options, callback)
 		end
 
 		-- 3. AGGIORNAMENTO DINAMICO DEL BOTTONE CHIUSO PRINCIPALE
-		-- Se c'è una selezione attiva, aggiorna istantaneamente il testo del bottone principale chiuso (es. da "Copper x2" a "Copper x10")
 		if currentSelection then
 			local arrow = opened and "  ▲" or "  ▼"
-			button.Text = "  " .. currentSelection .. arrow
+			button.Text = "  " .. formatWithGreenNumber(currentSelection) .. arrow
 		end
 
-		-- Adatta lo scroll in base al numero finale di elementi
 		list.CanvasSize = UDim2.new(0, 0, 0, #currentOptions * 28)
 
-		-- Se aperto, aggiorna fluidamente l'altezza
 		if opened then
 			local height = math.min(#currentOptions * 28 + 5, 115)
 			list.Size = UDim2.new(1, -24, 0, height)
@@ -576,15 +591,13 @@ function Elements.Dropdown(parent, title, options, callback)
 	-- Inizializzazione
 	updateList(options)
 
-	-- Gestione click di apertura/chiusura del Dropdown principale
 	button.Activated:Connect(function()
 		opened = not opened
 		
-		-- Calcolo del testo da mostrare sul bottone principale (mantiene la selezione se esiste!)
-		local displayText = currentSelection or title
+		local displayText = currentSelection and formatWithGreenNumber(currentSelection) or title
 		
 		if opened then
-			button.Text = "  " .. displayText .. "  ▲" -- Mantiene il nome dell'opzione anziché resettarsi!
+			button.Text = "  " .. displayText .. "  ▲"
 			local height = math.min(#currentOptions * 28 + 5, 115)
 			list.Visible = true
 			list.Size = UDim2.new(1, -24, 0, height)
@@ -596,7 +609,6 @@ function Elements.Dropdown(parent, title, options, callback)
 		end
 	end)
 
-	-- Wrapper dei metodi esterni
 	local DropdownObject = {}
 	DropdownObject.Instance = frame
 
@@ -607,12 +619,12 @@ function Elements.Dropdown(parent, title, options, callback)
 	function DropdownObject:Set(value)
 		currentSelection = value
 		local arrow = opened and "  ▲" or "  ▼"
-		button.Text = "  " .. tostring(value) .. arrow
+		button.Text = "  " .. formatWithGreenNumber(value) .. arrow
 		if callback then task.spawn(callback, value) end
 	end
 
 	function DropdownObject:Get()
-		return currentSelection
+		return currentSelection -- Ritorna sempre il testo PULITO originale senza tag HTML (es. "Copper x10")
 	end
 
 	setmetatable(DropdownObject, {
