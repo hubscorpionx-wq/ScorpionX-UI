@@ -431,7 +431,7 @@ function Elements.TextBox(parent, title, placeholder, callback)
 end
 
 ----------------------------------------------------------
--- DROPDOWN (Con aggiornamento intelligente NO-RECREATE)
+-- DROPDOWN (Con Aggiornamento Dinamico della Selezione)
 ----------------------------------------------------------
 function Elements.Dropdown(parent, title, options, callback)
 	local frame = CreateContainer(parent, 40)
@@ -440,6 +440,7 @@ function Elements.Dropdown(parent, title, options, callback)
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(1, 0, 0, 40)
 	button.BackgroundTransparency = 1
+	-- Inizialmente mostra il titolo
 	button.Text = "  " .. title .. "  ▼"
 	button.Font = Theme.SemiBoldFont
 	button.TextSize = 13
@@ -453,7 +454,7 @@ function Elements.Dropdown(parent, title, options, callback)
 
 	local opened = false
 	local currentOptions = options or {}
-	local currentSelection = nil
+	local currentSelection = nil -- Memorizza l'opzione attualmente selezionata (es. "Copper x2")
 
 	local list = Instance.new("ScrollingFrame")
 	list.Visible = false
@@ -470,7 +471,7 @@ function Elements.Dropdown(parent, title, options, callback)
 	layout.Padding = UDim.new(0, 2)
 	layout.Parent = list
 
-	-- Helper per creare una singola opzione (usata all'inizio o se servono nuovi bottoni)
+	-- Helper per creare un'opzione
 	local function createOptionButton(optionText)
 		local opt = Instance.new("TextButton")
 		opt.Size = UDim2.new(1, 0, 0, 26)
@@ -491,10 +492,9 @@ function Elements.Dropdown(parent, title, options, callback)
 		end)
 
 		opt.Activated:Connect(function()
-			-- Legge sempre il testo corrente dinamico del bottone al click
 			local activeText = opt.Text
-			currentSelection = activeText
-			button.Text = "  " .. activeText .. "  ▼"
+			currentSelection = activeText -- Salva la selezione corrente
+			button.Text = "  " .. activeText .. "  ▼" -- Imposta il testo sul bottone principale
 			opened = false
 			list.Visible = false
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
@@ -508,7 +508,26 @@ function Elements.Dropdown(parent, title, options, callback)
 	local function updateList(newOptions)
 		currentOptions = newOptions or {}
 
-		-- Recuperiamo solo i bottoni TextButton già esistenti
+		-- 1. Trova se la risorsa precedentemente selezionata esiste ancora nella nuova lista (anche se la quantità è cambiata!)
+		-- Es: se prima avevamo selezionato "Copper x2" e ora c'è "Copper x10", vogliamo identificare che la selezione è ancora "Copper"
+		local updatedSelectionText = nil
+		if currentSelection then
+			local cleanOldName = currentSelection:gsub(" x%d+$", "") -- Estrae "Copper" da "Copper x2"
+			for _, newOpt in ipairs(currentOptions) do
+				local cleanNewName = tostring(newOpt):gsub(" x%d+$", "") -- Estrae "Copper" da "Copper x10"
+				if cleanOldName == cleanNewName then
+					updatedSelectionText = tostring(newOpt) -- Trovato! Sarà "Copper x10"
+					break
+				end
+			end
+		end
+
+		-- Se la risorsa precedentemente selezionata esiste ancora ma con quantità aggiornata, sincronizziamo lo stato interno
+		if updatedSelectionText then
+			currentSelection = updatedSelectionText
+		end
+
+		-- 2. Recuperiamo solo i bottoni TextButton esistenti per aggiornarli
 		local existingButtons = {}
 		for _, child in ipairs(list:GetChildren()) do
 			if child:IsA("TextButton") then
@@ -524,25 +543,29 @@ function Elements.Dropdown(parent, title, options, callback)
 
 			if newOptText ~= nil then
 				if btn ~= nil then
-					-- Caso 1: Il bottone esiste già. Cambiamo solo il testo!
 					btn.Text = tostring(newOptText)
 					btn.Visible = true
 				else
-					-- Caso 2: Ci sono più opzioni di prima. Creiamo un nuovo bottone
 					createOptionButton(newOptText)
 				end
 			else
 				if btn ~= nil then
-					-- Caso 3: Ci sono meno opzioni di prima. Rimuoviamo il bottone in eccesso
 					btn:Destroy()
 				end
 			end
 		end
 
+		-- 3. AGGIORNAMENTO DINAMICO DEL BOTTONE CHIUSO PRINCIPALE
+		-- Se c'è una selezione attiva, aggiorna istantaneamente il testo del bottone principale chiuso (es. da "Copper x2" a "Copper x10")
+		if currentSelection then
+			local arrow = opened and "  ▲" or "  ▼"
+			button.Text = "  " .. currentSelection .. arrow
+		end
+
 		-- Adatta lo scroll in base al numero finale di elementi
 		list.CanvasSize = UDim2.new(0, 0, 0, #currentOptions * 28)
 
-		-- Se aperto, aggiorna fluidamente l'altezza in tempo reale
+		-- Se aperto, aggiorna fluidamente l'altezza
 		if opened then
 			local height = math.min(#currentOptions * 28 + 5, 115)
 			list.Size = UDim2.new(1, -24, 0, height)
@@ -553,22 +576,27 @@ function Elements.Dropdown(parent, title, options, callback)
 	-- Inizializzazione
 	updateList(options)
 
+	-- Gestione click di apertura/chiusura del Dropdown principale
 	button.Activated:Connect(function()
 		opened = not opened
+		
+		-- Calcolo del testo da mostrare sul bottone principale (mantiene la selezione se esiste!)
+		local displayText = currentSelection or title
+		
 		if opened then
-			button.Text = "  " .. title .. "  ▲"
+			button.Text = "  " .. displayText .. "  ▲" -- Mantiene il nome dell'opzione anziché resettarsi!
 			local height = math.min(#currentOptions * 28 + 5, 115)
 			list.Visible = true
 			list.Size = UDim2.new(1, -24, 0, height)
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, height + 50)})
 		else
-			button.Text = "  " .. title .. "  ▼"
+			button.Text = "  " .. displayText .. "  ▼"
 			list.Visible = false
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
 		end
 	end)
 
-	-- Wrapper per i metodi dinamici del Dropdown
+	-- Wrapper dei metodi esterni
 	local DropdownObject = {}
 	DropdownObject.Instance = frame
 
@@ -578,7 +606,8 @@ function Elements.Dropdown(parent, title, options, callback)
 
 	function DropdownObject:Set(value)
 		currentSelection = value
-		button.Text = "  " .. tostring(value) .. "  ▼"
+		local arrow = opened and "  ▲" or "  ▼"
+		button.Text = "  " .. tostring(value) .. arrow
 		if callback then task.spawn(callback, value) end
 	end
 
