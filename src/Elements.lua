@@ -311,6 +311,7 @@ function Elements.Toggle(parent, title, default, callback)
 
 	return ToggleObject
 end
+
 --------------------------------------------------------
 -- SLIDER
 --------------------------------------------------------
@@ -430,8 +431,8 @@ function Elements.TextBox(parent, title, placeholder, callback)
 end
 
 ----------------------------------------------------------
--- DROPDOWN
---------------------------------------------------------
+-- DROPDOWN (Con aggiornamento intelligente NO-RECREATE)
+----------------------------------------------------------
 function Elements.Dropdown(parent, title, options, callback)
 	local frame = CreateContainer(parent, 40)
 	frame.ClipsDescendants = true
@@ -451,12 +452,14 @@ function Elements.Dropdown(parent, title, options, callback)
 	btnPad.Parent = button
 
 	local opened = false
+	local currentOptions = options or {}
+	local currentSelection = nil
 
 	local list = Instance.new("ScrollingFrame")
 	list.Visible = false
 	list.Position = UDim2.new(0, 12, 0, 42)
 	list.Size = UDim2.new(1, -24, 0, 0)
-	list.CanvasSize = UDim2.new(0, 0, 0, #options * 28)
+	list.CanvasSize = UDim2.new(0, 0, 0, #currentOptions * 28)
 	list.ScrollBarThickness = 2
 	list.ScrollBarImageColor3 = Theme.Colors.Accent
 	list.BackgroundTransparency = 1
@@ -467,12 +470,13 @@ function Elements.Dropdown(parent, title, options, callback)
 	layout.Padding = UDim.new(0, 2)
 	layout.Parent = list
 
-	for _, option in ipairs(options) do
+	-- Helper per creare una singola opzione (usata all'inizio o se servono nuovi bottoni)
+	local function createOptionButton(optionText)
 		local opt = Instance.new("TextButton")
 		opt.Size = UDim2.new(1, 0, 0, 26)
 		opt.BackgroundColor3 = Theme.Colors.Tertiary
 		opt.Font = Theme.Font
-		opt.Text = tostring(option)
+		opt.Text = tostring(optionText)
 		opt.TextColor3 = Theme.Colors.TextDark
 		opt.TextSize = 12
 		opt.Parent = list
@@ -487,19 +491,73 @@ function Elements.Dropdown(parent, title, options, callback)
 		end)
 
 		opt.Activated:Connect(function()
-			button.Text = "  " .. tostring(option) .. "  ▼"
+			-- Legge sempre il testo corrente dinamico del bottone al click
+			local activeText = opt.Text
+			currentSelection = activeText
+			button.Text = "  " .. activeText .. "  ▼"
 			opened = false
 			list.Visible = false
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
-			if callback then task.spawn(callback, option) end
+			if callback then task.spawn(callback, activeText) end
 		end)
+
+		return opt
 	end
+
+	-- Aggiornamento dinamico intelligente (REUSE)
+	local function updateList(newOptions)
+		currentOptions = newOptions or {}
+
+		-- Recuperiamo solo i bottoni TextButton già esistenti
+		local existingButtons = {}
+		for _, child in ipairs(list:GetChildren()) do
+			if child:IsA("TextButton") then
+				table.insert(existingButtons, child)
+			end
+		end
+
+		local maxCount = math.max(#currentOptions, #existingButtons)
+
+		for i = 1, maxCount do
+			local newOptText = currentOptions[i]
+			local btn = existingButtons[i]
+
+			if newOptText ~= nil then
+				if btn ~= nil then
+					-- Caso 1: Il bottone esiste già. Cambiamo solo il testo!
+					btn.Text = tostring(newOptText)
+					btn.Visible = true
+				else
+					-- Caso 2: Ci sono più opzioni di prima. Creiamo un nuovo bottone
+					createOptionButton(newOptText)
+				end
+			else
+				if btn ~= nil then
+					-- Caso 3: Ci sono meno opzioni di prima. Rimuoviamo il bottone in eccesso
+					btn:Destroy()
+				end
+			end
+		end
+
+		-- Adatta lo scroll in base al numero finale di elementi
+		list.CanvasSize = UDim2.new(0, 0, 0, #currentOptions * 28)
+
+		-- Se aperto, aggiorna fluidamente l'altezza in tempo reale
+		if opened then
+			local height = math.min(#currentOptions * 28 + 5, 115)
+			list.Size = UDim2.new(1, -24, 0, height)
+			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, height + 50)})
+		end
+	end
+
+	-- Inizializzazione
+	updateList(options)
 
 	button.Activated:Connect(function()
 		opened = not opened
 		if opened then
 			button.Text = "  " .. title .. "  ▲"
-			local height = math.min(#options * 28 + 5, 115)
+			local height = math.min(#currentOptions * 28 + 5, 115)
 			list.Visible = true
 			list.Size = UDim2.new(1, -24, 0, height)
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, height + 50)})
@@ -510,7 +568,34 @@ function Elements.Dropdown(parent, title, options, callback)
 		end
 	end)
 
-	return frame
+	-- Wrapper per i metodi dinamici del Dropdown
+	local DropdownObject = {}
+	DropdownObject.Instance = frame
+
+	function DropdownObject:Refresh(newOptions)
+		updateList(newOptions)
+	end
+
+	function DropdownObject:Set(value)
+		currentSelection = value
+		button.Text = "  " .. tostring(value) .. "  ▼"
+		if callback then task.spawn(callback, value) end
+	end
+
+	function DropdownObject:Get()
+		return currentSelection
+	end
+
+	setmetatable(DropdownObject, {
+		__index = function(_, key)
+			return frame[key]
+		end,
+		__newindex = function(_, key, value)
+			frame[key] = value
+		end
+	})
+
+	return DropdownObject
 end
 
 --------------------------------------------------------
