@@ -416,7 +416,7 @@ function Elements.TextBox(parent, title, placeholder, callback)
 	box.PlaceholderColor3 = Theme.Colors.Placeholder
 	box.Font = Theme.Font
 	box.TextSize = 12
-	box.ClearTextOnFocus = true
+	box.ClearTextOnFocus = false
 	box.Parent = frame
 
 	Utils.Corner(box)
@@ -425,6 +425,25 @@ function Elements.TextBox(parent, title, placeholder, callback)
 	box.FocusLost:Connect(function(enterPressed)
 		if callback then task.spawn(callback, box.Text, enterPressed) end
 	end)
+
+	-- ==========================================================
+	-- METODI DI AGGIORNAMENTO DINAMICO
+	-- ==========================================================
+	
+	-- Cambia il testo inserito: oggetto:SetText("Nuovo Testo")
+	function frame:SetText(newText)
+		box.Text = tostring(newText)
+	end
+
+	-- Ottiene il testo corrente: local testo = oggetto:GetText()
+	function frame:GetText()
+		return box.Text
+	end
+
+	-- Cambia il testo di sfondo (placeholder): oggetto:SetPlaceholder("Nuovo placeholder...")
+	function frame:SetPlaceholder(newPlaceholder)
+		box.PlaceholderText = tostring(newPlaceholder)
+	end
 
 	return frame
 end
