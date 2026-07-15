@@ -416,7 +416,7 @@ function Elements.TextBox(parent, title, placeholder, callback)
 	box.PlaceholderColor3 = Theme.Colors.Placeholder
 	box.Font = Theme.Font
 	box.TextSize = 12
-	box.ClearTextOnFocus = false
+	box.ClearTextOnFocus = true
 	box.Parent = frame
 
 	Utils.Corner(box)
