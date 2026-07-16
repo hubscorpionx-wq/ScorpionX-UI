@@ -499,6 +499,7 @@ function Elements.Dropdown(parent, title, options, callback)
 		opt.TextColor3 = Theme.Colors.TextDark
 		opt.TextSize = 12
 		opt.RichText = true -- ABILITA IL RICH TEXT SULLE OPZIONI
+		opt:SetAttribute("OptionValue", tostring(optionText))
 		opt.Parent = list
 
 		Utils.Corner(opt)
@@ -511,14 +512,16 @@ function Elements.Dropdown(parent, title, options, callback)
 		end)
 
 		opt.Activated:Connect(function()
-			-- Salviamo il valore REALE senza i tag XML del Rich Text per evitare bug di lettura nello script di vendita
-			currentSelection = optionText 
+			-- Refresh può aver cambiato la voce mostrata: usa sempre il valore aggiornato.
+			local selectedValue = opt:GetAttribute("OptionValue")
+			if selectedValue == nil then return end
+			currentSelection = selectedValue
 			
-			button.Text = "  " .. formatWithGreenNumber(optionText) .. "  ▼"
+			button.Text = "  " .. formatWithGreenNumber(selectedValue) .. "  ▼"
 			opened = false
 			list.Visible = false
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
-			if callback then task.spawn(callback, optionText) end
+			if callback then task.spawn(callback, selectedValue) end
 		end)
 
 		return opt
@@ -561,6 +564,7 @@ function Elements.Dropdown(parent, title, options, callback)
 
 			if newOptText ~= nil then
 				if btn ~= nil then
+					btn:SetAttribute("OptionValue", tostring(newOptText))
 					btn.Text = formatWithGreenNumber(newOptText) -- Aggiorna applicando il verde
 					btn.Visible = true
 				else
