@@ -431,7 +431,7 @@ function Elements.TextBox(parent, title, placeholder, callback)
 end
 
 ----------------------------------------------------------
--- DROPDOWN (Con Aggiornamento Dinamico e Rich Text Verde per i Numeri)
+-- DROPDOWN MULTI-SELEZIONE (Aggiornato per Multi-Select)
 ----------------------------------------------------------
 function Elements.Dropdown(parent, title, options, callback)
 	local frame = CreateContainer(parent, 40)
@@ -440,13 +440,12 @@ function Elements.Dropdown(parent, title, options, callback)
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(1, 0, 0, 40)
 	button.BackgroundTransparency = 1
-	-- Inizialmente mostra il titolo
-	button.Text = "  " .. title .. "  ▼"
+	button.Text = "  " .. title .. " (0)  ▼"
 	button.Font = Theme.SemiBoldFont
 	button.TextSize = 13
 	button.TextColor3 = Theme.Colors.Text
 	button.TextXAlignment = Enum.TextXAlignment.Left
-	button.RichText = true -- ABILITA IL RICH TEXT SUL BOTTONE PRINCIPALE
+	button.RichText = true
 	button.Parent = frame
 
 	local btnPad = Instance.new("UIPadding")
@@ -455,7 +454,7 @@ function Elements.Dropdown(parent, title, options, callback)
 
 	local opened = false
 	local currentOptions = options or {}
-	local currentSelection = nil -- Memorizza il testo originale non formattato (es. "Copper x2")
+	local selections = {} -- Tabella dizionario: [NomeOpzione] = true/false
 
 	local list = Instance.new("ScrollingFrame")
 	list.Visible = false
@@ -472,119 +471,136 @@ function Elements.Dropdown(parent, title, options, callback)
 	layout.Padding = UDim.new(0, 2)
 	layout.Parent = list
 
-	-- Funzione interna per colorare di verde qualsiasi numero/quantità alla fine della stringa
+	-- Helper per formattare il testo (numeri verdi)
 	local function formatWithGreenNumber(text)
 		local str = tostring(text)
-		-- Cerca formati come " x9", " [9]", " (9)", " 9", " - 9" alla fine della stringa
-		-- Cattura il separatore/simbolo iniziale e il numero interno
 		local pattern = "(%s*[x%[%(%-]*%s*)(%d+)([%]%)]*)$"
 		local prefix, number, suffix = str:match(pattern)
-		
 		if number then
 			local mainText = str:gsub(pattern, "")
-			-- Avvolge la quantità in un tag di colore verde neon (es. #00FF7F o il tuo Accent se preferisci)
 			local greenColor = "rgb(0, 255, 127)" 
 			return mainText .. prefix .. "<font color=\"" .. greenColor .. "\">" .. number .. "</font>" .. suffix
 		end
 		return str
 	end
 
-	-- Helper per creare un'opzione
+	-- Conta gli elementi selezionati e aggiorna il testo del bottone principale
+	local function updateButtonText()
+		local selectedCount = 0
+		local selectedTextList = {}
+		
+		for _, optName in ipairs(currentOptions) do
+			if selections[tostring(optName)] then
+				selectedCount = selectedCount + 1
+				table.insert(selectedTextList, tostring(optName))
+			end
+		end
+
+		local arrow = opened and "  ▲" or "  ▼"
+		if selectedCount == 0 then
+			button.Text = "  " .. title .. " (0)" .. arrow
+		elseif selectedCount == 1 then
+			button.Text = "  " .. formatWithGreenNumber(selectedTextList[1]) .. arrow
+		else
+			button.Text = "  " .. tostring(selectedCount) .. " Selezionati" .. arrow
+		end
+	end
+
+	-- Restituisce una tabella pulita con solo i valori attivi
+	local function getActiveSelectionsTable()
+		local active = {}
+		for _, optName in ipairs(currentOptions) do
+			if selections[tostring(optName)] then
+				table.insert(active, tostring(optName))
+			end
+		end
+		return active
+	end
+
+	-- Crea o aggiorna un bottone opzione
 	local function createOptionButton(optionText)
+		local optName = tostring(optionText)
 		local opt = Instance.new("TextButton")
 		opt.Size = UDim2.new(1, 0, 0, 26)
 		opt.BackgroundColor3 = Theme.Colors.Tertiary
 		opt.Font = Theme.Font
-		opt.Text = formatWithGreenNumber(optionText) -- Applica la formattazione verde
-		opt.TextColor3 = Theme.Colors.TextDark
 		opt.TextSize = 12
-		opt.RichText = true -- ABILITA IL RICH TEXT SULLE OPZIONI
-		opt:SetAttribute("OptionValue", tostring(optionText))
+		opt.RichText = true
+		opt:SetAttribute("OptionValue", optName)
 		opt.Parent = list
 
 		Utils.Corner(opt)
 
+		local function refreshOptionVisual()
+			local isSelected = selections[optName] == true
+			local baseText = formatWithGreenNumber(optName)
+			if isSelected then
+				opt.Text = "✓ " .. baseText
+				opt.TextColor3 = Theme.Colors.Accent
+			else
+				opt.Text = "  " .. baseText
+				opt.TextColor3 = Theme.Colors.TextDark
+			end
+		end
+
+		refreshOptionVisual()
+
 		opt.MouseEnter:Connect(function()
-			Utils.Tween(opt, {TextColor3 = Theme.Colors.Accent})
+			if not selections[optName] then
+				Utils.Tween(opt, {TextColor3 = Theme.Colors.Text})
+			end
 		end)
+		
 		opt.MouseLeave:Connect(function()
-			Utils.Tween(opt, {TextColor3 = Theme.Colors.TextDark})
+			if not selections[optName] then
+				Utils.Tween(opt, {TextColor3 = Theme.Colors.TextDark})
+			end
 		end)
 
 		opt.Activated:Connect(function()
-			-- Refresh può aver cambiato la voce mostrata: usa sempre il valore aggiornato.
-			local selectedValue = opt:GetAttribute("OptionValue")
-			if selectedValue == nil then return end
-			currentSelection = selectedValue
+			local currentVal = opt:GetAttribute("OptionValue")
+			if not currentVal then return end
 			
-			button.Text = "  " .. formatWithGreenNumber(selectedValue) .. "  ▼"
-			opened = false
-			list.Visible = false
-			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
-			if callback then task.spawn(callback, selectedValue) end
+			-- Inverte lo stato di selezione
+			selections[currentVal] = not selections[currentVal]
+			
+			refreshOptionVisual()
+			updateButtonText()
+			
+			if callback then 
+				task.spawn(callback, getActiveSelectionsTable()) 
+			end
 		end)
 
 		return opt
 	end
 
-	-- Aggiornamento dinamico intelligente (REUSE)
+	-- Sincronizza l'interfaccia con i dati
 	local function updateList(newOptions)
 		currentOptions = newOptions or {}
-
-		-- 1. Trova se la risorsa precedentemente selezionata esiste ancora
-		local updatedSelectionText = nil
-		if currentSelection then
-			local cleanOldName = currentSelection:gsub("%s*[x%[%(%-]*%s*%d+[%]%)]*$", "") -- Estrae "Copper" in modo generico
-			for _, newOpt in ipairs(currentOptions) do
-				local cleanNewName = tostring(newOpt):gsub("%s*[x%[%(%-]*%s*%d+[%]%)]*$", "")
-				if cleanOldName == cleanNewName then
-					updatedSelectionText = tostring(newOpt)
-					break
-				end
+		
+		-- Rimuove vecchie selezioni non più presenti nel nuovo set
+		local tempSelections = {}
+		for _, optName in ipairs(currentOptions) do
+			local nameStr = tostring(optName)
+			if selections[nameStr] then
+				tempSelections[nameStr] = true
 			end
 		end
+		selections = tempSelections
 
-		if updatedSelectionText then
-			currentSelection = updatedSelectionText
-		end
-
-		-- 2. Recuperiamo i bottoni esistenti
-		local existingButtons = {}
+		-- Pulisce e rigenera la lista grafica
 		for _, child in ipairs(list:GetChildren()) do
-			if child:IsA("TextButton") then
-				table.insert(existingButtons, child)
-			end
+			if child:IsA("TextButton") then child:Destroy() end
 		end
 
-		local maxCount = math.max(#currentOptions, #existingButtons)
-
-		for i = 1, maxCount do
-			local newOptText = currentOptions[i]
-			local btn = existingButtons[i]
-
-			if newOptText ~= nil then
-				if btn ~= nil then
-					btn:SetAttribute("OptionValue", tostring(newOptText))
-					btn.Text = formatWithGreenNumber(newOptText) -- Aggiorna applicando il verde
-					btn.Visible = true
-				else
-					createOptionButton(newOptText)
-				end
-			else
-				if btn ~= nil then
-					btn:Destroy()
-				end
-			end
+		for _, newOpt in ipairs(currentOptions) do
+			createOptionButton(newOpt)
 		end
 
-		-- 3. AGGIORNAMENTO DINAMICO DEL BOTTONE CHIUSO PRINCIPALE
-		if currentSelection then
-			local arrow = opened and "  ▲" or "  ▼"
-			button.Text = "  " .. formatWithGreenNumber(currentSelection) .. arrow
-		end
+		updateButtonText()
 
 		list.CanvasSize = UDim2.new(0, 0, 0, #currentOptions * 28)
-
 		if opened then
 			local height = math.min(#currentOptions * 28 + 5, 115)
 			list.Size = UDim2.new(1, -24, 0, height)
@@ -592,22 +608,18 @@ function Elements.Dropdown(parent, title, options, callback)
 		end
 	end
 
-	-- Inizializzazione
 	updateList(options)
 
 	button.Activated:Connect(function()
 		opened = not opened
-		
-		local displayText = currentSelection and formatWithGreenNumber(currentSelection) or title
+		updateButtonText()
 		
 		if opened then
-			button.Text = "  " .. displayText .. "  ▲"
 			local height = math.min(#currentOptions * 28 + 5, 115)
 			list.Visible = true
 			list.Size = UDim2.new(1, -24, 0, height)
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, height + 50)})
 		else
-			button.Text = "  " .. displayText .. "  ▼"
 			list.Visible = false
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
 		end
@@ -620,24 +632,24 @@ function Elements.Dropdown(parent, title, options, callback)
 		updateList(newOptions)
 	end
 
-	function DropdownObject:Set(value)
-		currentSelection = value
-		local arrow = opened and "  ▲" or "  ▼"
-		button.Text = "  " .. formatWithGreenNumber(value) .. arrow
-		if callback then task.spawn(callback, value) end
+	function DropdownObject:Set(tableOfValues)
+		selections = {}
+		if type(tableOfValues) == "table" then
+			for _, val in ipairs(tableOfValues) do
+				selections[tostring(val)] = true
+			end
+		end
+		updateList(currentOptions)
+		if callback then task.spawn(callback, getActiveSelectionsTable()) end
 	end
 
 	function DropdownObject:Get()
-		return currentSelection -- Ritorna sempre il testo PULITO originale senza tag HTML (es. "Copper x10")
+		return getActiveSelectionsTable()
 	end
 
 	setmetatable(DropdownObject, {
-		__index = function(_, key)
-			return frame[key]
-		end,
-		__newindex = function(_, key, value)
-			frame[key] = value
-		end
+		__index = function(_, key) return frame[key] end,
+		__newindex = function(_, key, value) frame[key] = value end
 	})
 
 	return DropdownObject
