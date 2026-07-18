@@ -430,10 +430,10 @@ function Elements.TextBox(parent, title, placeholder, callback)
 	return frame
 end
 
-----------------------------------------------------------
--- DROPDOWN MULTI-SELEZIONE (Aggiornato per Multi-Select)
-----------------------------------------------------------
-function Elements.Dropdown(parent, title, options, callback)
+--------------------------------------------------------------------------
+-- DROPDOWN IBRIDO (CONFIGURABILE: SINGOLO O MULTI-SELEZIONE)
+--------------------------------------------------------------------------
+function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 	local frame = CreateContainer(parent, 40)
 	frame.ClipsDescendants = true
 
@@ -454,7 +454,7 @@ function Elements.Dropdown(parent, title, options, callback)
 
 	local opened = false
 	local currentOptions = options or {}
-	local selections = {} -- Tabella dizionario: [NomeOpzione] = true/false
+	local selections = {} -- Dizionario interno: [NomeOpzione] = true/false
 
 	local list = Instance.new("ScrollingFrame")
 	list.Visible = false
@@ -471,7 +471,6 @@ function Elements.Dropdown(parent, title, options, callback)
 	layout.Padding = UDim.new(0, 2)
 	layout.Parent = list
 
-	-- Helper per formattare il testo (numeri verdi)
 	local function formatWithGreenNumber(text)
 		local str = tostring(text)
 		local pattern = "(%s*[x%[%(%-]*%s*)(%d+)([%]%)]*)$"
@@ -484,7 +483,6 @@ function Elements.Dropdown(parent, title, options, callback)
 		return str
 	end
 
-	-- Conta gli elementi selezionati e aggiorna il testo del bottone principale
 	local function updateButtonText()
 		local selectedCount = 0
 		local selectedTextList = {}
@@ -498,7 +496,7 @@ function Elements.Dropdown(parent, title, options, callback)
 
 		local arrow = opened and "  ▲" or "  ▼"
 		if selectedCount == 0 then
-			button.Text = "  " .. title .. " (0)" .. arrow
+			button.Text = "  " .. title .. (isMultiSelect and " (0)" or "") .. arrow
 		elseif selectedCount == 1 then
 			button.Text = "  " .. formatWithGreenNumber(selectedTextList[1]) .. arrow
 		else
@@ -506,7 +504,6 @@ function Elements.Dropdown(parent, title, options, callback)
 		end
 	end
 
-	-- Restituisce una tabella pulita con solo i valori attivi
 	local function getActiveSelectionsTable()
 		local active = {}
 		for _, optName in ipairs(currentOptions) do
@@ -517,7 +514,26 @@ function Elements.Dropdown(parent, title, options, callback)
 		return active
 	end
 
-	-- Crea o aggiorna un bottone opzione
+	-- Forza l'aggiornamento grafico visivo di tutti i bottoni della lista
+	local function refreshAllOptionsVisual()
+		for _, child in ipairs(list:GetChildren()) do
+			if child:IsA("TextButton") then
+				local optName = child:GetAttribute("OptionValue")
+				if optName then
+					local isSelected = selections[optName] == true
+					local baseText = formatWithGreenNumber(optName)
+					if isSelected then
+						child.Text = "✓ " .. baseText
+						child.TextColor3 = Theme.Colors.Accent
+					else
+						child.Text = "  " .. baseText
+						child.TextColor3 = Theme.Colors.TextDark
+					end
+				end
+			end
+		end
+	end
+
 	local function createOptionButton(optionText)
 		local optName = tostring(optionText)
 		local opt = Instance.new("TextButton")
@@ -531,40 +547,41 @@ function Elements.Dropdown(parent, title, options, callback)
 
 		Utils.Corner(opt)
 
-		local function refreshOptionVisual()
-			local isSelected = selections[optName] == true
-			local baseText = formatWithGreenNumber(optName)
-			if isSelected then
-				opt.Text = "✓ " .. baseText
-				opt.TextColor3 = Theme.Colors.Accent
-			else
-				opt.Text = "  " .. baseText
-				opt.TextColor3 = Theme.Colors.TextDark
-			end
+		local isSelected = selections[optName] == true
+		local baseText = formatWithGreenNumber(optName)
+		if isSelected then
+			opt.Text = "✓ " .. baseText
+			opt.TextColor3 = Theme.Colors.Accent
+		else
+			opt.Text = "  " .. baseText
+			opt.TextColor3 = Theme.Colors.TextDark
 		end
 
-		refreshOptionVisual()
-
 		opt.MouseEnter:Connect(function()
-			if not selections[optName] then
-				Utils.Tween(opt, {TextColor3 = Theme.Colors.Text})
-			end
+			if not selections[optName] then Utils.Tween(opt, {TextColor3 = Theme.Colors.Text}) end
 		end)
 		
 		opt.MouseLeave:Connect(function()
-			if not selections[optName] then
-				Utils.Tween(opt, {TextColor3 = Theme.Colors.TextDark})
-			end
+			if not selections[optName] then Utils.Tween(opt, {TextColor3 = Theme.Colors.TextDark}) end
 		end)
 
 		opt.Activated:Connect(function()
 			local currentVal = opt:GetAttribute("OptionValue")
 			if not currentVal then return end
 			
-			-- Inverte lo stato di selezione
-			selections[currentVal] = not selections[currentVal]
+			if isMultiSelect then
+				selections[currentVal] = not selections[currentVal]
+			else
+				-- Selezione Singola: pulisce tutto e attiva solo l'elemento selezionato
+				table.clear(selections)
+				selections[currentVal] = true
+				-- Chiude il dropdown dopo la selezione singola per fluidità di utilizzo
+				opened = false
+				list.Visible = false
+				Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
+			end
 			
-			refreshOptionVisual()
+			refreshAllOptionsVisual()
 			updateButtonText()
 			
 			if callback then 
@@ -575,21 +592,16 @@ function Elements.Dropdown(parent, title, options, callback)
 		return opt
 	end
 
-	-- Sincronizza l'interfaccia con i dati
 	local function updateList(newOptions)
 		currentOptions = newOptions or {}
 		
-		-- Rimuove vecchie selezioni non più presenti nel nuovo set
 		local tempSelections = {}
 		for _, optName in ipairs(currentOptions) do
 			local nameStr = tostring(optName)
-			if selections[nameStr] then
-				tempSelections[nameStr] = true
-			end
+			if selections[nameStr] then tempSelections[nameStr] = true end
 		end
 		selections = tempSelections
 
-		-- Pulisce e rigenera la lista grafica
 		for _, child in ipairs(list:GetChildren()) do
 			if child:IsA("TextButton") then child:Destroy() end
 		end
@@ -633,11 +645,15 @@ function Elements.Dropdown(parent, title, options, callback)
 	end
 
 	function DropdownObject:Set(tableOfValues)
-		selections = {}
+		table.clear(selections)
 		if type(tableOfValues) == "table" then
-			for _, val in ipairs(tableOfValues) do
-				selections[tostring(val)] = true
+			if isMultiSelect then
+				for _, val in ipairs(tableOfValues) do selections[tostring(val)] = true end
+			elseif #tableOfValues > 0 then
+				selections[tostring(tableOfValues[1])] = true
 			end
+		else
+			selections[tostring(tableOfValues)] = true
 		end
 		updateList(currentOptions)
 		if callback then task.spawn(callback, getActiveSelectionsTable()) end
