@@ -1,4 +1,50 @@
+local Elements = {}
 
+function Elements.Toggle(parent, title, default, callback)
+	local frame = CreateContainer(parent, 40)
+	local state = default or false
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(0.6, 0, 1, 0)
+	label.Position = UDim2.new(0, 12, 0, 0)
+	label.BackgroundTransparency = 1
+	label.Font = Theme.SemiBoldFont
+	label.Text = title
+	label.TextSize = 13
+	label.TextColor3 = Theme.Colors.Text
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = frame
+
+	local indicator = Instance.new("Frame")
+	indicator.Size = UDim2.fromOffset(34, 18)
+	indicator.Position = UDim2.new(1, -12, 0.5, -9)
+	indicator.AnchorPoint = Vector2.new(1, 0)
+	indicator.BackgroundColor3 = state and Theme.Colors.Accent or Theme.Colors.Tertiary
+	indicator.Parent = frame
+
+	Utils.Corner(indicator)
+	Utils.Stroke(indicator, Theme.Colors.Stroke)
+
+	local dot = Instance.new("Frame")
+	dot.Size = UDim2.fromOffset(12, 12)
+	dot.Position = state and UDim2.new(1, -15, 0.5, -6) or UDim2.new(0, 3, 0.5, -6)
+	dot.BackgroundColor3 = Theme.Colors.Text
+	dot.Parent = indicator
+
+	Utils.Corner(dot)
+
+	local function Update(animate)
+		local targetBg = state and Theme.Colors.Accent or Theme.Colors.Tertiary
+		local targetPos = state and UDim2.new(1, -15, 0.5, -6) or UDim2.new(0, 3, 0.5, -6)
+
+		if animate then
+			Utils.Tween(indicator, {BackgroundColor3 = targetBg})
+			Utils.Tween(dot, {Position = targetPos})
+		else
+			indicator.BackgroundColor3 = targetBg
+			dot.Position = targetPos
+		end
+	end
 
 	local click = Instance.new("TextButton")
 	click.Size = UDim2.fromScale(1, 1)
@@ -12,11 +58,8 @@
 		if callback then task.spawn(callback, state) end
 	end)
 
-	-- ==========================================
-	-- FIX: Creiamo l'oggetto personalizzato con il metodo :Set()
-	-- ==========================================
 	local ToggleObject = {}
-	ToggleObject.Instance = frame -- Mantiene comunque il riferimento al frame se serve
+	ToggleObject.Instance = frame
 
 	function ToggleObject:Set(v)
 		if state ~= v then
@@ -26,7 +69,6 @@
 		end
 	end
 
-	-- Permette al codice legacy di trattare l'oggetto come se fosse il frame originale
 	setmetatable(ToggleObject, {
 		__index = function(_, key)
 			return frame[key]
@@ -39,9 +81,6 @@
 	return ToggleObject
 end
 
---------------------------------------------------------
--- SLIDER
---------------------------------------------------------
 function Elements.Slider(parent, title, min, max, default, callback)
 	local UIS = game:GetService("UserInputService")
 	local frame = CreateContainer(parent, 52)
@@ -117,9 +156,6 @@ function Elements.Slider(parent, title, min, max, default, callback)
 	return frame
 end
 
---------------------------------------------------------
--- TEXTBOX
---------------------------------------------------------
 function Elements.TextBox(parent, title, placeholder, callback)
 	local frame = CreateContainer(parent, 44)
 
@@ -157,9 +193,6 @@ function Elements.TextBox(parent, title, placeholder, callback)
 	return frame
 end
 
-----------------------------------------------------------
--- DROPDOWN (Con Aggiornamento Dinamico della Selezione)
-----------------------------------------------------------
 function Elements.Dropdown(parent, title, options, callback)
 	local frame = CreateContainer(parent, 40)
 	frame.ClipsDescendants = true
@@ -167,7 +200,6 @@ function Elements.Dropdown(parent, title, options, callback)
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(1, 0, 0, 40)
 	button.BackgroundTransparency = 1
-	-- Inizialmente mostra il titolo
 	button.Text = "  " .. title .. "  ▼"
 	button.Font = Theme.SemiBoldFont
 	button.TextSize = 13
@@ -181,7 +213,7 @@ function Elements.Dropdown(parent, title, options, callback)
 
 	local opened = false
 	local currentOptions = options or {}
-	local currentSelection = nil -- Memorizza l'opzione attualmente selezionata (es. "Copper x2")
+	local currentSelection = nil
 
 	local list = Instance.new("ScrollingFrame")
 	list.Visible = false
@@ -198,7 +230,6 @@ function Elements.Dropdown(parent, title, options, callback)
 	layout.Padding = UDim.new(0, 2)
 	layout.Parent = list
 
-	-- Helper per creare un'opzione
 	local function createOptionButton(optionText)
 		local opt = Instance.new("TextButton")
 		opt.Size = UDim2.new(1, 0, 0, 26)
@@ -220,8 +251,8 @@ function Elements.Dropdown(parent, title, options, callback)
 
 		opt.Activated:Connect(function()
 			local activeText = opt.Text
-			currentSelection = activeText -- Salva la selezione corrente
-			button.Text = "  " .. activeText .. "  ▼" -- Imposta il testo sul bottone principale
+			currentSelection = activeText
+			button.Text = "  " .. activeText .. "  ▼"
 			opened = false
 			list.Visible = false
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
@@ -231,30 +262,25 @@ function Elements.Dropdown(parent, title, options, callback)
 		return opt
 	end
 
-	-- Aggiornamento dinamico intelligente (REUSE)
 	local function updateList(newOptions)
 		currentOptions = newOptions or {}
 
-		-- 1. Trova se la risorsa precedentemente selezionata esiste ancora nella nuova lista (anche se la quantità è cambiata!)
-		-- Es: se prima avevamo selezionato "Copper x2" e ora c'è "Copper x10", vogliamo identificare che la selezione è ancora "Copper"
 		local updatedSelectionText = nil
 		if currentSelection then
-			local cleanOldName = currentSelection:gsub(" x%d+$", "") -- Estrae "Copper" da "Copper x2"
+			local cleanOldName = currentSelection:gsub(" x%d+$", "")
 			for _, newOpt in ipairs(currentOptions) do
-				local cleanNewName = tostring(newOpt):gsub(" x%d+$", "") -- Estrae "Copper" da "Copper x10"
+				local cleanNewName = tostring(newOpt):gsub(" x%d+$", "")
 				if cleanOldName == cleanNewName then
-					updatedSelectionText = tostring(newOpt) -- Trovato! Sarà "Copper x10"
+					updatedSelectionText = tostring(newOpt)
 					break
 				end
 			end
 		end
 
-		-- Se la risorsa precedentemente selezionata esiste ancora ma con quantità aggiornata, sincronizziamo lo stato interno
 		if updatedSelectionText then
 			currentSelection = updatedSelectionText
 		end
 
-		-- 2. Recuperiamo solo i bottoni TextButton esistenti per aggiornarli
 		local existingButtons = {}
 		for _, child in ipairs(list:GetChildren()) do
 			if child:IsA("TextButton") then
@@ -282,17 +308,13 @@ function Elements.Dropdown(parent, title, options, callback)
 			end
 		end
 
-		-- 3. AGGIORNAMENTO DINAMICO DEL BOTTONE CHIUSO PRINCIPALE
-		-- Se c'è una selezione attiva, aggiorna istantaneamente il testo del bottone principale chiuso (es. da "Copper x2" a "Copper x10")
 		if currentSelection then
 			local arrow = opened and "  ▲" or "  ▼"
 			button.Text = "  " .. currentSelection .. arrow
 		end
 
-		-- Adatta lo scroll in base al numero finale di elementi
 		list.CanvasSize = UDim2.new(0, 0, 0, #currentOptions * 28)
 
-		-- Se aperto, aggiorna fluidamente l'altezza
 		if opened then
 			local height = math.min(#currentOptions * 28 + 5, 115)
 			list.Size = UDim2.new(1, -24, 0, height)
@@ -300,18 +322,14 @@ function Elements.Dropdown(parent, title, options, callback)
 		end
 	end
 
-	-- Inizializzazione
 	updateList(options)
 
-	-- Gestione click di apertura/chiusura del Dropdown principale
 	button.Activated:Connect(function()
 		opened = not opened
-		
-		-- Calcolo del testo da mostrare sul bottone principale (mantiene la selezione se esiste!)
 		local displayText = currentSelection or title
 		
 		if opened then
-			button.Text = "  " .. displayText .. "  ▲" -- Mantiene il nome dell'opzione anziché resettarsi!
+			button.Text = "  " .. displayText .. "  ▲"
 			local height = math.min(#currentOptions * 28 + 5, 115)
 			list.Visible = true
 			list.Size = UDim2.new(1, -24, 0, height)
@@ -323,7 +341,6 @@ function Elements.Dropdown(parent, title, options, callback)
 		end
 	end)
 
-	-- Wrapper dei metodi esterni
 	local DropdownObject = {}
 	DropdownObject.Instance = frame
 
@@ -354,9 +371,6 @@ function Elements.Dropdown(parent, title, options, callback)
 	return DropdownObject
 end
 
---------------------------------------------------------
--- KEYBIND
---------------------------------------------------------
 function Elements.Keybind(parent, title, defaultKey, callback)
 	local UIS = game:GetService("UserInputService")
 	local frame = CreateContainer(parent, 40)
