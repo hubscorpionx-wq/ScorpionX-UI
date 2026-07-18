@@ -419,9 +419,15 @@ function Elements.TextBox(parent, title, placeholder, callback)
 end
 
 --------------------------------------------------------------------------
--- DROPDOWN HIBRID
+-- DROPDOWN HIBRID (Fixed Multiselect)
 --------------------------------------------------------------------------
 function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
+	-- Se il quarto parametro viene saltato ma passiamo una funzione, riordiniamo i parametri
+	if type(isMultiSelect) == "function" then
+		callback = isMultiSelect
+		isMultiSelect = true -- Impostato true di default per tracciare più slot contemporaneamente
+	end
+
 	local frame = CreateContainer(parent, 40)
 	frame.ClipsDescendants = true
 
@@ -657,7 +663,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 end
 
 --------------------------------------------------------
--- KEYBIND (Completato e Corretto)
+-- KEYBIND
 --------------------------------------------------------
 function Elements.Keybind(parent, title, defaultKey, callback)
 	local UIS = game:GetService("UserInputService")
