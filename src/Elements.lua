@@ -8,7 +8,7 @@ local Utils = Modules.Utils
 
 local Elements = {}
 
--- Funzione helper per creare i container degli elementi con stile coerente
+-- Helper interno per creare i container degli elementi
 local function CreateContainer(parent, height)
 	local frame = Instance.new("Frame")
 	frame.Size = UDim2.new(0.95, 0, 0, height)
@@ -419,21 +419,16 @@ function Elements.TextBox(parent, title, placeholder, callback)
 end
 
 --------------------------------------------------------------------------
--- DROPDOWN IBRIDO CONFIGURABILE (Risolto il bug visivo iniziale)
+-- DROPDOWN HIBRID
 --------------------------------------------------------------------------
 function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
-	if type(isMultiSelect) == "function" then
-		callback = isMultiSelect
-		isMultiSelect = false
-	end
-
 	local frame = CreateContainer(parent, 40)
 	frame.ClipsDescendants = true
 
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(1, 0, 0, 40)
 	button.BackgroundTransparency = 1
-	button.Text = "  " .. title .. (isMultiSelect and " (0)  ▼" or "  ▼")
+	button.Text = "  " .. title .. " (0)  ▼"
 	button.Font = Theme.SemiBoldFont
 	button.TextSize = 13
 	button.TextColor3 = Theme.Colors.Text
@@ -447,7 +442,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 
 	local opened = false
 	local currentOptions = options or {}
-	local selections = {} 
+	local selections = {}
 
 	local list = Instance.new("ScrollingFrame")
 	list.Visible = false
@@ -539,7 +534,6 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 
 		Utils.Corner(opt)
 
-		-- FIX: Forza il caricamento dello stato corretto all'istanziazione
 		local isSelected = selections[optName] == true
 		local baseText = formatWithGreenNumber(optName)
 		if isSelected then
@@ -576,8 +570,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 			updateButtonText()
 			
 			if callback then 
-				-- Ritorna la tabella se multiselect, altrimenti la stringa singola
-				task.spawn(callback, isMultiSelect and getActiveSelectionsTable() or currentVal) 
+				task.spawn(callback, getActiveSelectionsTable()) 
 			end
 		end)
 
@@ -648,14 +641,11 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 			selections[tostring(tableOfValues)] = true
 		end
 		updateList(currentOptions)
-		if callback then 
-			task.spawn(callback, isMultiSelect and getActiveSelectionsTable() or getActiveSelectionsTable()[1]) 
-		end
+		if callback then task.spawn(callback, getActiveSelectionsTable()) end
 	end
 
 	function DropdownObject:Get()
-		local active = getActiveSelectionsTable()
-		return isMultiSelect and active or active[1]
+		return getActiveSelectionsTable()
 	end
 
 	setmetatable(DropdownObject, {
@@ -667,7 +657,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 end
 
 --------------------------------------------------------
--- KEYBIND
+-- KEYBIND (Completato e Corretto)
 --------------------------------------------------------
 function Elements.Keybind(parent, title, defaultKey, callback)
 	local UIS = game:GetService("UserInputService")
@@ -698,7 +688,7 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 	Utils.Corner(bind)
 	Utils.Stroke(bind, Theme.Colors.Stroke)
 
-	local currentKey = defaultKey
+	local current = defaultKey
 	local waiting = false
 
 	bind.Activated:Connect(function()
@@ -712,12 +702,12 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 		if waiting then
 			if input.UserInputType == Enum.UserInputType.Keyboard then
 				waiting = false
-				currentKey = input.KeyCode
-				bind.Text = currentKey.Name
+				current = input.KeyCode
+				bind.Text = current.Name
 			end
 		else
-			if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == currentKey then
-				if callback then task.spawn(callback, currentKey) end
+			if current and input.KeyCode == current then
+				if callback then task.spawn(callback, current) end
 			end
 		end
 	end)
@@ -725,13 +715,13 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 	local KeybindObject = {}
 	KeybindObject.Instance = frame
 
-	function KeybindObject:Set(newKey)
-		currentKey = newKey
-		bind.Text = currentKey and currentKey.Name or "None"
+	function KeybindObject:Set(key)
+		current = key
+		bind.Text = key and key.Name or "None"
 	end
 
 	function KeybindObject:Get()
-		return currentKey
+		return current
 	end
 
 	setmetatable(KeybindObject, {
