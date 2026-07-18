@@ -8,7 +8,7 @@ local Utils = Modules.Utils
 
 local Elements = {}
 
--- Helper interno per creare i container degli elementi
+-- Funzione helper per creare i container degli elementi con stile coerente
 local function CreateContainer(parent, height)
 	local frame = Instance.new("Frame")
 	frame.Size = UDim2.new(0.95, 0, 0, height)
@@ -28,7 +28,9 @@ end
 function Elements.CreateWindow(title)
 	local ScreenGui = Instance.new("ScreenGui")
 	ScreenGui.Name = "ScorpioX_UI"
+	ScreenGui.ResetOnSpawn = false
 	
+	-- Sicurezza per l'esecuzione in CoreGui o PlayerGui
 	local success, err = pcall(function()
 		ScreenGui.Parent = game:GetService("CoreGui")
 	end)
@@ -46,6 +48,7 @@ function Elements.CreateWindow(title)
 	Utils.Corner(MainFrame)
 	Utils.Stroke(MainFrame, Theme.Colors.Stroke)
 
+	-- Titolo dell'Hub
 	local TitleLabel = Instance.new("TextLabel")
 	TitleLabel.Size = UDim2.new(1, -20, 0, 35)
 	TitleLabel.Position = UDim2.new(0, 15, 0, 0)
@@ -57,6 +60,7 @@ function Elements.CreateWindow(title)
 	TitleLabel.Text = title or "ScorpioX Hub"
 	TitleLabel.Parent = MainFrame
 
+	-- Container interno con Scrolling per gli elementi
 	local Container = Instance.new("ScrollingFrame")
 	Container.Size = UDim2.new(1, -20, 1, -50)
 	Container.Position = UDim2.new(0, 10, 0, 40)
@@ -71,6 +75,7 @@ function Elements.CreateWindow(title)
 	Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	Layout.Parent = Container
 
+	-- Auto-aggiornamento della dimensione dello scrolling
 	Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 		Container.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 10)
 	end)
@@ -293,8 +298,12 @@ function Elements.Toggle(parent, title, default, callback)
 	end
 
 	setmetatable(ToggleObject, {
-		__index = function(_, key) return frame[key] end,
-		__newindex = function(_, key, value) frame[key] = value end
+		__index = function(_, key)
+			return frame[key]
+		end,
+		__newindex = function(_, key, value)
+			frame[key] = value
+		end
 	})
 
 	return ToggleObject
@@ -346,6 +355,7 @@ function Elements.Slider(parent, title, min, max, default, callback)
 	Utils.Corner(fill)
 
 	local dragging = false
+	local connections = {}
 
 	local function SetValue(x)
 		local percent = math.clamp((x - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
@@ -360,18 +370,21 @@ function Elements.Slider(parent, title, min, max, default, callback)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			SetValue(input.Position.X)
-		end
-	end)
-
-	UIS.InputChanged:Connect(function(input)
-		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-			SetValue(input.Position.X)
-		end
-	end)
-
-	UIS.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = false
+			
+			-- Connessioni temporanee per evitare memory leak globali
+			table.insert(connections, UIS.InputChanged:Connect(function(moveInput)
+				if dragging and (moveInput.UserInputType == Enum.UserInputType.MouseMovement or moveInput.UserInputType == Enum.UserInputType.Touch) then
+					SetValue(moveInput.Position.X)
+				end
+			end))
+			
+			table.insert(connections, UIS.InputEnded:Connect(function(endInput)
+				if endInput.UserInputType == Enum.UserInputType.MouseButton1 or endInput.UserInputType == Enum.UserInputType.Touch then
+					dragging = false
+					for _, c in ipairs(connections) do c:Disconnect() end
+					table.clear(connections)
+				end
+			end))
 		end
 	end)
 
@@ -419,15 +432,9 @@ function Elements.TextBox(parent, title, placeholder, callback)
 end
 
 --------------------------------------------------------------------------
--- DROPDOWN HIBRID (Fixed Multiselect)
+-- DROPDOWN IBRIDO
 --------------------------------------------------------------------------
 function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
-	-- Se il quarto parametro viene saltato ma passiamo una funzione, riordiniamo i parametri
-	if type(isMultiSelect) == "function" then
-		callback = isMultiSelect
-		isMultiSelect = true -- Impostato true di default per tracciare più slot contemporaneamente
-	end
-
 	local frame = CreateContainer(parent, 40)
 	frame.ClipsDescendants = true
 
@@ -663,7 +670,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 end
 
 --------------------------------------------------------
--- KEYBIND
+-- KEYBIND (Corretto, Completato e Ottimizzato)
 --------------------------------------------------------
 function Elements.Keybind(parent, title, defaultKey, callback)
 	local UIS = game:GetService("UserInputService")
@@ -694,7 +701,7 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 	Utils.Corner(bind)
 	Utils.Stroke(bind, Theme.Colors.Stroke)
 
-	local current = defaultKey
+	local currentBind = defaultKey
 	local waiting = false
 
 	bind.Activated:Connect(function()
@@ -702,18 +709,19 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 		bind.Text = "..."
 	end)
 
-	UIS.InputBegan:Connect(function(input, gp)
-		if gp then return end
+	-- Connessione centralizzata per ascoltare i tasti della tastiera
+	UIS.InputBegan:Connect(function(input, gameProcessed)
+		if gameProcessed then return end
 
 		if waiting then
 			if input.UserInputType == Enum.UserInputType.Keyboard then
 				waiting = false
-				current = input.KeyCode
-				bind.Text = current.Name
+				currentBind = input.KeyCode
+				bind.Text = currentBind.Name
 			end
 		else
-			if current and input.KeyCode == current then
-				if callback then task.spawn(callback, current) end
+			if input.UserInputType == Enum.UserInputType.Keyboard and currentBind and input.KeyCode == currentBind then
+				if callback then task.spawn(callback, currentBind) end
 			end
 		end
 	end)
@@ -721,13 +729,13 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 	local KeybindObject = {}
 	KeybindObject.Instance = frame
 
-	function KeybindObject:Set(key)
-		current = key
-		bind.Text = key and key.Name or "None"
+	function KeybindObject:Set(newKey)
+		currentBind = newKey
+		bind.Text = newKey and newKey.Name or "None"
 	end
 
 	function KeybindObject:Get()
-		return current
+		return currentBind
 	end
 
 	setmetatable(KeybindObject, {
