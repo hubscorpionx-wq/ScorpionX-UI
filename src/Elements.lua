@@ -3,7 +3,7 @@
 --==============================================================================
 
 local Modules = getgenv().ScorpioXModules
-local Theme = Modules.Theme 
+local Theme = Modules.Theme 
 local Utils = Modules.Utils
 
 local Elements = {}
@@ -23,13 +23,12 @@ local function CreateContainer(parent, height)
 end
 
 --------------------------------------------------------
--- MAIN WINDOW CREATION (Risolve l'errore "nil value")
+-- MAIN WINDOW CREATION
 --------------------------------------------------------
 function Elements.CreateWindow(title)
 	local ScreenGui = Instance.new("ScreenGui")
 	ScreenGui.Name = "ScorpioX_UI"
 	
-	-- Sicurezza per l'esecuzione in CoreGui o PlayerGui
 	local success, err = pcall(function()
 		ScreenGui.Parent = game:GetService("CoreGui")
 	end)
@@ -47,7 +46,6 @@ function Elements.CreateWindow(title)
 	Utils.Corner(MainFrame)
 	Utils.Stroke(MainFrame, Theme.Colors.Stroke)
 
-	-- Titolo dell'Hub
 	local TitleLabel = Instance.new("TextLabel")
 	TitleLabel.Size = UDim2.new(1, -20, 0, 35)
 	TitleLabel.Position = UDim2.new(0, 15, 0, 0)
@@ -59,7 +57,6 @@ function Elements.CreateWindow(title)
 	TitleLabel.Text = title or "ScorpioX Hub"
 	TitleLabel.Parent = MainFrame
 
-	-- Container interno con Scrolling per gli elementi
 	local Container = Instance.new("ScrollingFrame")
 	Container.Size = UDim2.new(1, -20, 1, -50)
 	Container.Position = UDim2.new(0, 10, 0, 40)
@@ -74,7 +71,6 @@ function Elements.CreateWindow(title)
 	Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	Layout.Parent = Container
 
-	-- Auto-aggiornamento della dimensione dello scrolling
 	Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 		Container.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 10)
 	end)
@@ -220,7 +216,7 @@ function Elements.Button(parent, text, callback)
 end
 
 --------------------------------------------------------
--- TOGGLE (Versione Corretta con supporto al metodo :Set)
+-- TOGGLE
 --------------------------------------------------------
 function Elements.Toggle(parent, title, default, callback)
 	local frame = CreateContainer(parent, 44)
@@ -285,11 +281,8 @@ function Elements.Toggle(parent, title, default, callback)
 		if callback then task.spawn(callback, state) end
 	end)
 
-	-- ==========================================
-	-- FIX: Creiamo l'oggetto personalizzato con il metodo :Set()
-	-- ==========================================
 	local ToggleObject = {}
-	ToggleObject.Instance = frame -- Mantiene comunque il riferimento al frame se serve
+	ToggleObject.Instance = frame
 
 	function ToggleObject:Set(v)
 		if state ~= v then
@@ -299,14 +292,9 @@ function Elements.Toggle(parent, title, default, callback)
 		end
 	end
 
-	-- Permette al codice legacy di trattare l'oggetto come se fosse il frame originale
 	setmetatable(ToggleObject, {
-		__index = function(_, key)
-			return frame[key]
-		end,
-		__newindex = function(_, key, value)
-			frame[key] = value
-		end
+		__index = function(_, key) return frame[key] end,
+		__newindex = function(_, key, value) frame[key] = value end
 	})
 
 	return ToggleObject
@@ -431,16 +419,22 @@ function Elements.TextBox(parent, title, placeholder, callback)
 end
 
 --------------------------------------------------------------------------
--- DROPDOWN IBRIDO (CONFIGURABILE: SINGOLO O MULTI-SELEZIONE)
+-- DROPDOWN IBRIDO (CONFIGURABILE AUTOMATICAMENTE)
 --------------------------------------------------------------------------
 function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
+	-- FIX: Rileva automaticamente se 'isMultiSelect' viene omesso passando direttamente la funzione
+	if type(isMultiSelect) == "function" then
+		callback = isMultiSelect
+		isMultiSelect = false
+	end
+
 	local frame = CreateContainer(parent, 40)
 	frame.ClipsDescendants = true
 
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(1, 0, 0, 40)
 	button.BackgroundTransparency = 1
-	button.Text = "  " .. title .. " (0)  ▼"
+	button.Text = "  " .. title .. (isMultiSelect and " (0)  ▼" or "  ▼")
 	button.Font = Theme.SemiBoldFont
 	button.TextSize = 13
 	button.TextColor3 = Theme.Colors.Text
@@ -454,7 +448,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 
 	local opened = false
 	local currentOptions = options or {}
-	local selections = {} -- Dizionario interno: [NomeOpzione] = true/false
+	local selections = {} 
 
 	local list = Instance.new("ScrollingFrame")
 	list.Visible = false
@@ -477,7 +471,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 		local prefix, number, suffix = str:match(pattern)
 		if number then
 			local mainText = str:gsub(pattern, "")
-			local greenColor = "rgb(0, 255, 127)" 
+			local greenColor = "rgb(0, 255, 127)" 
 			return mainText .. prefix .. "<font color=\"" .. greenColor .. "\">" .. number .. "</font>" .. suffix
 		end
 		return str
@@ -494,13 +488,13 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 			end
 		end
 
-		local arrow = opened and "  ▲" or "  ▼"
+		local arrow = opened and "  ▲" or "  ▼"
 		if selectedCount == 0 then
-			button.Text = "  " .. title .. (isMultiSelect and " (0)" or "") .. arrow
+			button.Text = "  " .. title .. (isMultiSelect and " (0)" or "") .. arrow
 		elseif selectedCount == 1 then
-			button.Text = "  " .. formatWithGreenNumber(selectedTextList[1]) .. arrow
+			button.Text = "  " .. formatWithGreenNumber(selectedTextList[1]) .. arrow
 		else
-			button.Text = "  " .. tostring(selectedCount) .. " Selezionati" .. arrow
+			button.Text = "  " .. tostring(selectedCount) .. " Selezionati" .. arrow
 		end
 	end
 
@@ -514,7 +508,6 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 		return active
 	end
 
-	-- Forza l'aggiornamento grafico visivo di tutti i bottoni della lista
 	local function refreshAllOptionsVisual()
 		for _, child in ipairs(list:GetChildren()) do
 			if child:IsA("TextButton") then
@@ -526,7 +519,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 						child.Text = "✓ " .. baseText
 						child.TextColor3 = Theme.Colors.Accent
 					else
-						child.Text = "  " .. baseText
+						child.Text = "  " .. baseText
 						child.TextColor3 = Theme.Colors.TextDark
 					end
 				end
@@ -553,7 +546,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 			opt.Text = "✓ " .. baseText
 			opt.TextColor3 = Theme.Colors.Accent
 		else
-			opt.Text = "  " .. baseText
+			opt.Text = "  " .. baseText
 			opt.TextColor3 = Theme.Colors.TextDark
 		end
 
@@ -572,10 +565,8 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 			if isMultiSelect then
 				selections[currentVal] = not selections[currentVal]
 			else
-				-- Selezione Singola: pulisce tutto e attiva solo l'elemento selezionato
 				table.clear(selections)
 				selections[currentVal] = true
-				-- Chiude il dropdown dopo la selezione singola per fluidità di utilizzo
 				opened = false
 				list.Visible = false
 				Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
@@ -584,8 +575,8 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 			refreshAllOptionsVisual()
 			updateButtonText()
 			
-			if callback then 
-				task.spawn(callback, getActiveSelectionsTable()) 
+			if callback then 
+				task.spawn(callback, getActiveSelectionsTable()) 
 			end
 		end)
 
@@ -672,7 +663,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 end
 
 --------------------------------------------------------
--- KEYBIND
+-- KEYBIND (Completato)
 --------------------------------------------------------
 function Elements.Keybind(parent, title, defaultKey, callback)
 	local UIS = game:GetService("UserInputService")
@@ -703,7 +694,7 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 	Utils.Corner(bind)
 	Utils.Stroke(bind, Theme.Colors.Stroke)
 
-	local current = defaultKey
+	local currentKey = defaultKey
 	local waiting = false
 
 	bind.Activated:Connect(function()
@@ -717,6 +708,34 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 		if waiting then
 			if input.UserInputType == Enum.UserInputType.Keyboard then
 				waiting = false
-				current = input.KeyCode
-				bind.Text = current.Name
+				currentKey = input.KeyCode
+				bind.Text = currentKey.Name
 			end
+		else
+			if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == currentKey then
+				if callback then task.spawn(callback, currentKey) end
+			end
+		end
+	end)
+
+	local KeybindObject = {}
+	KeybindObject.Instance = frame
+
+	function KeybindObject:Set(newKey)
+		currentKey = newKey
+		bind.Text = currentKey and currentKey.Name or "None"
+	end
+
+	function KeybindObject:Get()
+		return currentKey
+	end
+
+	setmetatable(KeybindObject, {
+		__index = function(_, key) return frame[key] end,
+		__newindex = function(_, key, value) frame[key] = value end
+	})
+
+	return KeybindObject
+end
+
+return Elements
