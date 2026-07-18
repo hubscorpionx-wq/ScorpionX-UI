@@ -23,13 +23,12 @@ local function CreateContainer(parent, height)
 end
 
 --------------------------------------------------------
--- MAIN WINDOW CREATION (Risolve l'errore "nil value")
+-- MAIN WINDOW CREATION
 --------------------------------------------------------
 function Elements.CreateWindow(title)
 	local ScreenGui = Instance.new("ScreenGui")
 	ScreenGui.Name = "ScorpioX_UI"
 	
-	-- Sicurezza per l'esecuzione in CoreGui o PlayerGui
 	local success, err = pcall(function()
 		ScreenGui.Parent = game:GetService("CoreGui")
 	end)
@@ -47,7 +46,6 @@ function Elements.CreateWindow(title)
 	Utils.Corner(MainFrame)
 	Utils.Stroke(MainFrame, Theme.Colors.Stroke)
 
-	-- Titolo dell'Hub
 	local TitleLabel = Instance.new("TextLabel")
 	TitleLabel.Size = UDim2.new(1, -20, 0, 35)
 	TitleLabel.Position = UDim2.new(0, 15, 0, 0)
@@ -59,7 +57,6 @@ function Elements.CreateWindow(title)
 	TitleLabel.Text = title or "ScorpioX Hub"
 	TitleLabel.Parent = MainFrame
 
-	-- Container interno con Scrolling per gli elementi
 	local Container = Instance.new("ScrollingFrame")
 	Container.Size = UDim2.new(1, -20, 1, -50)
 	Container.Position = UDim2.new(0, 10, 0, 40)
@@ -74,7 +71,6 @@ function Elements.CreateWindow(title)
 	Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	Layout.Parent = Container
 
-	-- Auto-aggiornamento della dimensione dello scrolling
 	Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 		Container.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 10)
 	end)
@@ -220,7 +216,7 @@ function Elements.Button(parent, text, callback)
 end
 
 --------------------------------------------------------
--- TOGGLE (Versione Corretta con supporto al metodo :Set)
+-- TOGGLE
 --------------------------------------------------------
 function Elements.Toggle(parent, title, default, callback)
 	local frame = CreateContainer(parent, 44)
@@ -285,11 +281,8 @@ function Elements.Toggle(parent, title, default, callback)
 		if callback then task.spawn(callback, state) end
 	end)
 
-	-- ==========================================
-	-- FIX: Creiamo l'oggetto personalizzato con il metodo :Set()
-	-- ==========================================
 	local ToggleObject = {}
-	ToggleObject.Instance = frame -- Mantiene comunque il riferimento al frame se serve
+	ToggleObject.Instance = frame 
 
 	function ToggleObject:Set(v)
 		if state ~= v then
@@ -299,14 +292,9 @@ function Elements.Toggle(parent, title, default, callback)
 		end
 	end
 
-	-- Permette al codice legacy di trattare l'oggetto come se fosse il frame originale
 	setmetatable(ToggleObject, {
-		__index = function(_, key)
-			return frame[key]
-		end,
-		__newindex = function(_, key, value)
-			frame[key] = value
-		end
+		__index = function(_, key) return frame[key] end,
+		__newindex = function(_, key, value) frame[key] = value end
 	})
 
 	return ToggleObject
@@ -431,7 +419,7 @@ function Elements.TextBox(parent, title, placeholder, callback)
 end
 
 --------------------------------------------------------------------------
--- DROPDOWN IBRIDO (CONFIGURABILE: SINGOLO O MULTI-SELEZIONE)
+-- DROPDOWN IBRIDO (FIXED & ALIGNED)
 --------------------------------------------------------------------------
 function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 	local frame = CreateContainer(parent, 40)
@@ -454,7 +442,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 
 	local opened = false
 	local currentOptions = options or {}
-	local selections = {} -- Dizionario interno: [NomeOpzione] = true/false
+	local selections = {} 
 
 	local list = Instance.new("ScrollingFrame")
 	list.Visible = false
@@ -514,7 +502,6 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 		return active
 	end
 
-	-- Forza l'aggiornamento grafico visivo di tutti i bottoni della lista
 	local function refreshAllOptionsVisual()
 		for _, child in ipairs(list:GetChildren()) do
 			if child:IsA("TextButton") then
@@ -572,10 +559,8 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 			if isMultiSelect then
 				selections[currentVal] = not selections[currentVal]
 			else
-				-- Selezione Singola: pulisce tutto e attiva solo l'elemento selezionato
 				table.clear(selections)
 				selections[currentVal] = true
-				-- Chiude il dropdown dopo la selezione singola per fluidità di utilizzo
 				opened = false
 				list.Visible = false
 				Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
@@ -595,10 +580,13 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 	local function updateList(newOptions)
 		currentOptions = newOptions or {}
 		
+		-- Mantieni le selezioni intatte senza farle saltare nei controlli di stringa numerica
 		local tempSelections = {}
 		for _, optName in ipairs(currentOptions) do
 			local nameStr = tostring(optName)
-			if selections[nameStr] then tempSelections[nameStr] = true end
+			if selections[nameStr] then 
+				tempSelections[nameStr] = true 
+			end
 		end
 		selections = tempSelections
 
@@ -655,7 +643,11 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 		else
 			selections[tostring(tableOfValues)] = true
 		end
-		updateList(currentOptions)
+		
+		-- Sincronizza visivamente le opzioni caricate
+		updateButtonText()
+		refreshAllOptionsVisual()
+		
 		if callback then task.spawn(callback, getActiveSelectionsTable()) end
 	end
 
@@ -719,9 +711,8 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 				waiting = false
 				current = input.KeyCode
 				bind.Text = current.Name
+				if callback then task.spawn(callback, current) end
 			end
-		elseif input.KeyCode == current then
-			if callback then task.spawn(callback, current) end
 		end
 	end)
 
