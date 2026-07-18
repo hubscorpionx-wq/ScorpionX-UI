@@ -422,7 +422,6 @@ end
 -- DROPDOWN IBRIDO (CONFIGURABILE AUTOMATICAMENTE)
 --------------------------------------------------------------------------
 function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
-	-- FIX: Rileva automaticamente se 'isMultiSelect' viene omesso passando direttamente la funzione
 	if type(isMultiSelect) == "function" then
 		callback = isMultiSelect
 		isMultiSelect = false
@@ -663,7 +662,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 end
 
 --------------------------------------------------------
--- KEYBIND (Completato)
+-- KEYBIND
 --------------------------------------------------------
 function Elements.Keybind(parent, title, defaultKey, callback)
 	local UIS = game:GetService("UserInputService")
