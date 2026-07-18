@@ -419,7 +419,7 @@ function Elements.TextBox(parent, title, placeholder, callback)
 end
 
 --------------------------------------------------------------------------
--- DROPDOWN IBRIDO (CONFIGURABILE AUTOMATICAMENTE)
+-- DROPDOWN IBRIDO CONFIGURABILE (Risolto il bug visivo iniziale)
 --------------------------------------------------------------------------
 function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 	if type(isMultiSelect) == "function" then
@@ -539,6 +539,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 
 		Utils.Corner(opt)
 
+		-- FIX: Forza il caricamento dello stato corretto all'istanziazione
 		local isSelected = selections[optName] == true
 		local baseText = formatWithGreenNumber(optName)
 		if isSelected then
@@ -575,7 +576,8 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 			updateButtonText()
 			
 			if callback then 
-				task.spawn(callback, getActiveSelectionsTable()) 
+				-- Ritorna la tabella se multiselect, altrimenti la stringa singola
+				task.spawn(callback, isMultiSelect and getActiveSelectionsTable() or currentVal) 
 			end
 		end)
 
@@ -646,11 +648,14 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 			selections[tostring(tableOfValues)] = true
 		end
 		updateList(currentOptions)
-		if callback then task.spawn(callback, getActiveSelectionsTable()) end
+		if callback then 
+			task.spawn(callback, isMultiSelect and getActiveSelectionsTable() or getActiveSelectionsTable()[1]) 
+		end
 	end
 
 	function DropdownObject:Get()
-		return getActiveSelectionsTable()
+		local active = getActiveSelectionsTable()
+		return isMultiSelect and active or active[1]
 	end
 
 	setmetatable(DropdownObject, {
