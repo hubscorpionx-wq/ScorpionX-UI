@@ -419,7 +419,7 @@ function Elements.TextBox(parent, title, placeholder, callback)
 end
 
 --------------------------------------------------------------------------
--- DROPDOWN IBRIDO (FIXED & ALIGNED)
+-- DROPDOWN IBRIDO
 --------------------------------------------------------------------------
 function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 	local frame = CreateContainer(parent, 40)
@@ -580,7 +580,6 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 	local function updateList(newOptions)
 		currentOptions = newOptions or {}
 		
-		-- Mantieni le selezioni intatte senza farle saltare nei controlli di stringa numerica
 		local tempSelections = {}
 		for _, optName in ipairs(currentOptions) do
 			local nameStr = tostring(optName)
@@ -644,7 +643,6 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 			selections[tostring(tableOfValues)] = true
 		end
 		
-		-- Sincronizza visivamente le opzioni caricate
 		updateButtonText()
 		refreshAllOptionsVisual()
 		
