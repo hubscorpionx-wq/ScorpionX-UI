@@ -1,277 +1,4 @@
---==============================================================================
--- ScorpioX Modern Elements Engine (Premium Dark/Neon UI - Fixed & Complete)
---==============================================================================
 
-local Modules = getgenv().ScorpioXModules
-local Theme = Modules.Theme 
-local Utils = Modules.Utils
-
-local Elements = {}
-
--- Funzione helper per creare i container degli elementi con stile coerente
-local function CreateContainer(parent, height)
-	local frame = Instance.new("Frame")
-	frame.Size = UDim2.new(0.95, 0, 0, height)
-	frame.BackgroundColor3 = Theme.Colors.Secondary
-	frame.BorderSizePixel = 0
-	frame.Parent = parent
-
-	Utils.Corner(frame)
-	Utils.Stroke(frame, Theme.Colors.Stroke)
-
-	return frame
-end
-
---------------------------------------------------------
--- MAIN WINDOW CREATION (Risolve l'errore "nil value")
---------------------------------------------------------
-function Elements.CreateWindow(title)
-	local ScreenGui = Instance.new("ScreenGui")
-	ScreenGui.Name = "ScorpioX_UI"
-	
-	-- Sicurezza per l'esecuzione in CoreGui o PlayerGui
-	local success, err = pcall(function()
-		ScreenGui.Parent = game:GetService("CoreGui")
-	end)
-	if not success then
-		ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-	end
-
-	local MainFrame = Instance.new("Frame")
-	MainFrame.Size = UDim2.new(0, 450, 0, 350)
-	MainFrame.Position = UDim2.new(0.5, -225, 0.5, -175)
-	MainFrame.BackgroundColor3 = Theme.Colors.Background or Color3.fromRGB(20, 20, 20)
-	MainFrame.BorderSizePixel = 0
-	MainFrame.Parent = ScreenGui
-
-	Utils.Corner(MainFrame)
-	Utils.Stroke(MainFrame, Theme.Colors.Stroke)
-
-	-- Titolo dell'Hub
-	local TitleLabel = Instance.new("TextLabel")
-	TitleLabel.Size = UDim2.new(1, -20, 0, 35)
-	TitleLabel.Position = UDim2.new(0, 15, 0, 0)
-	TitleLabel.BackgroundTransparency = 1
-	TitleLabel.Font = Theme.BoldFont
-	TitleLabel.TextColor3 = Theme.Colors.Text
-	TitleLabel.TextSize = 14
-	TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-	TitleLabel.Text = title or "ScorpioX Hub"
-	TitleLabel.Parent = MainFrame
-
-	-- Container interno con Scrolling per gli elementi
-	local Container = Instance.new("ScrollingFrame")
-	Container.Size = UDim2.new(1, -20, 1, -50)
-	Container.Position = UDim2.new(0, 10, 0, 40)
-	Container.BackgroundTransparency = 1
-	Container.BorderSizePixel = 0
-	Container.ScrollBarThickness = 3
-	Container.ScrollBarImageColor3 = Theme.Colors.Accent
-	Container.Parent = MainFrame
-
-	local Layout = Instance.new("UIListLayout")
-	Layout.Padding = UDim.new(0, 6)
-	Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-	Layout.Parent = Container
-
-	-- Auto-aggiornamento della dimensione dello scrolling
-	Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-		Container.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 10)
-	end)
-
-	return Container
-end
-
---------------------------------------------------------
--- SECTION
---------------------------------------------------------
-function Elements.Section(parent, text)
-	local container = Instance.new("Frame")
-	container.Size = UDim2.new(0.95, 0, 0, 30)
-	container.BackgroundTransparency = 1
-	container.Parent = parent
-
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(1, 0, 1, 0)
-	label.BackgroundTransparency = 1
-	label.Font = Theme.BoldFont
-	label.TextColor3 = Theme.Colors.Accent
-	label.TextSize = 11
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.Text = "➤ " .. string.upper(text)
-	label.Parent = container
-
-	return container
-end
-
---------------------------------------------------------
--- PARAGRAPH
---------------------------------------------------------
-function Elements.Paragraph(parent, title, body)
-	local frame = CreateContainer(parent, 65)
-
-	local Title = Instance.new("TextLabel")
-	Title.Position = UDim2.new(0, 12, 0, 6)
-	Title.Size = UDim2.new(1, -24, 0, 18)
-	Title.BackgroundTransparency = 1
-	Title.Font = Theme.BoldFont
-	Title.TextColor3 = Theme.Colors.Text
-	Title.TextSize = 13
-	Title.TextXAlignment = Enum.TextXAlignment.Left
-	Title.Text = title
-	Title.Parent = frame
-
-	local Body = Instance.new("TextLabel")
-	Body.Position = UDim2.new(0, 12, 0, 24)
-	Body.Size = UDim2.new(1, -24, 1, -30)
-	Body.BackgroundTransparency = 1
-	Body.Font = Theme.Font
-	Body.TextWrapped = true
-	Body.TextColor3 = Theme.Colors.TextDark
-	Body.TextSize = 11
-	Body.TextXAlignment = Enum.TextXAlignment.Left
-	Body.TextYAlignment = Enum.TextYAlignment.Top
-	Body.Text = body
-	Body.Parent = frame
-
-	return frame
-end
-
---------------------------------------------------------
--- LABEL
---------------------------------------------------------
-function Elements.Label(parent, text)
-	local container = Instance.new("Frame")
-	container.Size = UDim2.new(0.95, 0, 0, 22)
-	container.BackgroundTransparency = 1
-	container.Parent = parent
-
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(1, 0, 1, 0)
-	label.Position = UDim2.new(0, 4, 0, 0)
-	label.BackgroundTransparency = 1
-	label.Font = Theme.Font
-	label.TextSize = 12
-	label.TextColor3 = Theme.Colors.TextDark
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.Text = text
-	label.Parent = container
-
-	return container
-end
-
---------------------------------------------------------
--- SEPARATOR
---------------------------------------------------------
-function Elements.Separator(parent)
-	local container = Instance.new("Frame")
-	container.Size = UDim2.new(0.95, 0, 0, 10)
-	container.BackgroundTransparency = 1
-	container.Parent = parent
-
-	local line = Instance.new("Frame")
-	line.Size = UDim2.new(1, 0, 0, 1)
-	line.Position = UDim2.new(0, 0, 0.5, 0)
-	line.BorderSizePixel = 0
-	line.BackgroundColor3 = Theme.Colors.Stroke
-	line.Parent = container
-
-	return container
-end
-
---------------------------------------------------------
--- BUTTON
---------------------------------------------------------
-function Elements.Button(parent, text, callback)
-	local frame = CreateContainer(parent, 36)
-	
-	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(1, 0, 1, 0)
-	button.BackgroundTransparency = 1
-	button.Font = Theme.SemiBoldFont
-	button.Text = text
-	button.TextSize = 13
-	button.TextColor3 = Theme.Colors.Text
-	button.Parent = frame
-
-	button.MouseEnter:Connect(function()
-		Utils.Tween(frame, {BackgroundColor3 = Theme.Colors.Tertiary})
-	end)
-
-	button.MouseLeave:Connect(function()
-		Utils.Tween(frame, {BackgroundColor3 = Theme.Colors.Secondary})
-	end)
-
-	button.MouseButton1Down:Connect(function()
-		Utils.Tween(frame, {BackgroundColor3 = Theme.Colors.Accent})
-		Utils.Tween(button, {TextColor3 = Color3.new(0,0,0)})
-	end)
-
-	button.MouseButton1Up:Connect(function()
-		Utils.Tween(frame, {BackgroundColor3 = Theme.Colors.Tertiary})
-		Utils.Tween(button, {TextColor3 = Theme.Colors.Text})
-	end)
-
-	button.Activated:Connect(function()
-		if callback then task.spawn(callback) end
-	end)
-
-	return frame
-end
-
---------------------------------------------------------
--- TOGGLE (Versione Corretta con supporto al metodo :Set)
---------------------------------------------------------
-function Elements.Toggle(parent, title, default, callback)
-	local frame = CreateContainer(parent, 44)
-
-	local label = Instance.new("TextLabel")
-	label.BackgroundTransparency = 1
-	label.Position = UDim2.new(0, 12, 0, 0)
-	label.Size = UDim2.new(0.7, 0, 1, 0)
-	label.Font = Theme.SemiBoldFont
-	label.Text = title
-	label.TextSize = 13
-	label.TextColor3 = Theme.Colors.Text
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.Parent = frame
-
-	local bg = Instance.new("Frame")
-	bg.Size = UDim2.fromOffset(38, 20)
-	bg.Position = UDim2.new(1, -50, 0.5, -10)
-	bg.BackgroundColor3 = Theme.Colors.Stroke
-	bg.BorderSizePixel = 0
-	bg.Parent = frame
-
-	Utils.Corner(bg)
-
-	local knob = Instance.new("Frame")
-	knob.Size = UDim2.fromOffset(14, 14)
-	knob.Position = UDim2.new(0, 3, 0.5, -7)
-	knob.BackgroundColor3 = Color3.fromRGB(160, 160, 160)
-	knob.BorderSizePixel = 0
-	knob.Parent = bg
-
-	Utils.Corner(knob)
-
-	local state = default == true
-
-	local function Update(animate)
-		local targetBg = state and Theme.Colors.Accent or Theme.Colors.Stroke
-		local targetKnobPos = state and UDim2.new(0, 21, 0.5, -7) or UDim2.new(0, 3, 0.5, -7)
-		local targetKnobColor = state and Color3.new(0, 0, 0) or Color3.fromRGB(180, 180, 180)
-
-		if animate then
-			Utils.Tween(bg, {BackgroundColor3 = targetBg})
-			Utils.Tween(knob, {Position = targetKnobPos, BackgroundColor3 = targetKnobColor})
-		else
-			bg.BackgroundColor3 = targetBg
-			knob.Position = targetKnobPos
-			knob.BackgroundColor3 = targetKnobColor
-		end
-	end
-
-	Update(false)
 
 	local click = Instance.new("TextButton")
 	click.Size = UDim2.fromScale(1, 1)
@@ -430,22 +157,22 @@ function Elements.TextBox(parent, title, placeholder, callback)
 	return frame
 end
 
---------------------------------------------------------------------------
--- DROPDOWN IBRIDO (CONFIGURABILE: SINGOLO O MULTI-SELEZIONE)
---------------------------------------------------------------------------
-function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
+----------------------------------------------------------
+-- DROPDOWN (Con Aggiornamento Dinamico della Selezione)
+----------------------------------------------------------
+function Elements.Dropdown(parent, title, options, callback)
 	local frame = CreateContainer(parent, 40)
 	frame.ClipsDescendants = true
 
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(1, 0, 0, 40)
 	button.BackgroundTransparency = 1
-	button.Text = "  " .. title .. " (0)  ▼"
+	-- Inizialmente mostra il titolo
+	button.Text = "  " .. title .. "  ▼"
 	button.Font = Theme.SemiBoldFont
 	button.TextSize = 13
 	button.TextColor3 = Theme.Colors.Text
 	button.TextXAlignment = Enum.TextXAlignment.Left
-	button.RichText = true
 	button.Parent = frame
 
 	local btnPad = Instance.new("UIPadding")
@@ -454,7 +181,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 
 	local opened = false
 	local currentOptions = options or {}
-	local selections = {} -- Dizionario interno: [NomeOpzione] = true/false
+	local currentSelection = nil -- Memorizza l'opzione attualmente selezionata (es. "Copper x2")
 
 	local list = Instance.new("ScrollingFrame")
 	list.Visible = false
@@ -471,148 +198,101 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 	layout.Padding = UDim.new(0, 2)
 	layout.Parent = list
 
-	local function formatWithGreenNumber(text)
-		local str = tostring(text)
-		local pattern = "(%s*[x%[%(%-]*%s*)(%d+)([%]%)]*)$"
-		local prefix, number, suffix = str:match(pattern)
-		if number then
-			local mainText = str:gsub(pattern, "")
-			local greenColor = "rgb(0, 255, 127)" 
-			return mainText .. prefix .. "<font color=\"" .. greenColor .. "\">" .. number .. "</font>" .. suffix
-		end
-		return str
-	end
-
-	local function updateButtonText()
-		local selectedCount = 0
-		local selectedTextList = {}
-		
-		for _, optName in ipairs(currentOptions) do
-			if selections[tostring(optName)] then
-				selectedCount = selectedCount + 1
-				table.insert(selectedTextList, tostring(optName))
-			end
-		end
-
-		local arrow = opened and "  ▲" or "  ▼"
-		if selectedCount == 0 then
-			button.Text = "  " .. title .. (isMultiSelect and " (0)" or "") .. arrow
-		elseif selectedCount == 1 then
-			button.Text = "  " .. formatWithGreenNumber(selectedTextList[1]) .. arrow
-		else
-			button.Text = "  " .. tostring(selectedCount) .. " Selezionati" .. arrow
-		end
-	end
-
-	local function getActiveSelectionsTable()
-		local active = {}
-		for _, optName in ipairs(currentOptions) do
-			if selections[tostring(optName)] then
-				table.insert(active, tostring(optName))
-			end
-		end
-		return active
-	end
-
-	-- Forza l'aggiornamento grafico visivo di tutti i bottoni della lista
-	local function refreshAllOptionsVisual()
-		for _, child in ipairs(list:GetChildren()) do
-			if child:IsA("TextButton") then
-				local optName = child:GetAttribute("OptionValue")
-				if optName then
-					local isSelected = selections[optName] == true
-					local baseText = formatWithGreenNumber(optName)
-					if isSelected then
-						child.Text = "✓ " .. baseText
-						child.TextColor3 = Theme.Colors.Accent
-					else
-						child.Text = "  " .. baseText
-						child.TextColor3 = Theme.Colors.TextDark
-					end
-				end
-			end
-		end
-	end
-
+	-- Helper per creare un'opzione
 	local function createOptionButton(optionText)
-		local optName = tostring(optionText)
 		local opt = Instance.new("TextButton")
 		opt.Size = UDim2.new(1, 0, 0, 26)
 		opt.BackgroundColor3 = Theme.Colors.Tertiary
 		opt.Font = Theme.Font
+		opt.Text = tostring(optionText)
+		opt.TextColor3 = Theme.Colors.TextDark
 		opt.TextSize = 12
-		opt.RichText = true
-		opt:SetAttribute("OptionValue", optName)
 		opt.Parent = list
 
 		Utils.Corner(opt)
 
-		local isSelected = selections[optName] == true
-		local baseText = formatWithGreenNumber(optName)
-		if isSelected then
-			opt.Text = "✓ " .. baseText
-			opt.TextColor3 = Theme.Colors.Accent
-		else
-			opt.Text = "  " .. baseText
-			opt.TextColor3 = Theme.Colors.TextDark
-		end
-
 		opt.MouseEnter:Connect(function()
-			if not selections[optName] then Utils.Tween(opt, {TextColor3 = Theme.Colors.Text}) end
+			Utils.Tween(opt, {TextColor3 = Theme.Colors.Accent})
 		end)
-		
 		opt.MouseLeave:Connect(function()
-			if not selections[optName] then Utils.Tween(opt, {TextColor3 = Theme.Colors.TextDark}) end
+			Utils.Tween(opt, {TextColor3 = Theme.Colors.TextDark})
 		end)
 
 		opt.Activated:Connect(function()
-			local currentVal = opt:GetAttribute("OptionValue")
-			if not currentVal then return end
-			
-			if isMultiSelect then
-				selections[currentVal] = not selections[currentVal]
-			else
-				-- Selezione Singola: pulisce tutto e attiva solo l'elemento selezionato
-				table.clear(selections)
-				selections[currentVal] = true
-				-- Chiude il dropdown dopo la selezione singola per fluidità di utilizzo
-				opened = false
-				list.Visible = false
-				Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
-			end
-			
-			refreshAllOptionsVisual()
-			updateButtonText()
-			
-			if callback then 
-				task.spawn(callback, getActiveSelectionsTable()) 
-			end
+			local activeText = opt.Text
+			currentSelection = activeText -- Salva la selezione corrente
+			button.Text = "  " .. activeText .. "  ▼" -- Imposta il testo sul bottone principale
+			opened = false
+			list.Visible = false
+			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
+			if callback then task.spawn(callback, activeText) end
 		end)
 
 		return opt
 	end
 
+	-- Aggiornamento dinamico intelligente (REUSE)
 	local function updateList(newOptions)
 		currentOptions = newOptions or {}
-		
-		local tempSelections = {}
-		for _, optName in ipairs(currentOptions) do
-			local nameStr = tostring(optName)
-			if selections[nameStr] then tempSelections[nameStr] = true end
-		end
-		selections = tempSelections
 
+		-- 1. Trova se la risorsa precedentemente selezionata esiste ancora nella nuova lista (anche se la quantità è cambiata!)
+		-- Es: se prima avevamo selezionato "Copper x2" e ora c'è "Copper x10", vogliamo identificare che la selezione è ancora "Copper"
+		local updatedSelectionText = nil
+		if currentSelection then
+			local cleanOldName = currentSelection:gsub(" x%d+$", "") -- Estrae "Copper" da "Copper x2"
+			for _, newOpt in ipairs(currentOptions) do
+				local cleanNewName = tostring(newOpt):gsub(" x%d+$", "") -- Estrae "Copper" da "Copper x10"
+				if cleanOldName == cleanNewName then
+					updatedSelectionText = tostring(newOpt) -- Trovato! Sarà "Copper x10"
+					break
+				end
+			end
+		end
+
+		-- Se la risorsa precedentemente selezionata esiste ancora ma con quantità aggiornata, sincronizziamo lo stato interno
+		if updatedSelectionText then
+			currentSelection = updatedSelectionText
+		end
+
+		-- 2. Recuperiamo solo i bottoni TextButton esistenti per aggiornarli
+		local existingButtons = {}
 		for _, child in ipairs(list:GetChildren()) do
-			if child:IsA("TextButton") then child:Destroy() end
+			if child:IsA("TextButton") then
+				table.insert(existingButtons, child)
+			end
 		end
 
-		for _, newOpt in ipairs(currentOptions) do
-			createOptionButton(newOpt)
+		local maxCount = math.max(#currentOptions, #existingButtons)
+
+		for i = 1, maxCount do
+			local newOptText = currentOptions[i]
+			local btn = existingButtons[i]
+
+			if newOptText ~= nil then
+				if btn ~= nil then
+					btn.Text = tostring(newOptText)
+					btn.Visible = true
+				else
+					createOptionButton(newOptText)
+				end
+			else
+				if btn ~= nil then
+					btn:Destroy()
+				end
+			end
 		end
 
-		updateButtonText()
+		-- 3. AGGIORNAMENTO DINAMICO DEL BOTTONE CHIUSO PRINCIPALE
+		-- Se c'è una selezione attiva, aggiorna istantaneamente il testo del bottone principale chiuso (es. da "Copper x2" a "Copper x10")
+		if currentSelection then
+			local arrow = opened and "  ▲" or "  ▼"
+			button.Text = "  " .. currentSelection .. arrow
+		end
 
+		-- Adatta lo scroll in base al numero finale di elementi
 		list.CanvasSize = UDim2.new(0, 0, 0, #currentOptions * 28)
+
+		-- Se aperto, aggiorna fluidamente l'altezza
 		if opened then
 			local height = math.min(#currentOptions * 28 + 5, 115)
 			list.Size = UDim2.new(1, -24, 0, height)
@@ -620,23 +300,30 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 		end
 	end
 
+	-- Inizializzazione
 	updateList(options)
 
+	-- Gestione click di apertura/chiusura del Dropdown principale
 	button.Activated:Connect(function()
 		opened = not opened
-		updateButtonText()
+		
+		-- Calcolo del testo da mostrare sul bottone principale (mantiene la selezione se esiste!)
+		local displayText = currentSelection or title
 		
 		if opened then
+			button.Text = "  " .. displayText .. "  ▲" -- Mantiene il nome dell'opzione anziché resettarsi!
 			local height = math.min(#currentOptions * 28 + 5, 115)
 			list.Visible = true
 			list.Size = UDim2.new(1, -24, 0, height)
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, height + 50)})
 		else
+			button.Text = "  " .. displayText .. "  ▼"
 			list.Visible = false
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, 40)})
 		end
 	end)
 
+	-- Wrapper dei metodi esterni
 	local DropdownObject = {}
 	DropdownObject.Instance = frame
 
@@ -644,28 +331,24 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 		updateList(newOptions)
 	end
 
-	function DropdownObject:Set(tableOfValues)
-		table.clear(selections)
-		if type(tableOfValues) == "table" then
-			if isMultiSelect then
-				for _, val in ipairs(tableOfValues) do selections[tostring(val)] = true end
-			elseif #tableOfValues > 0 then
-				selections[tostring(tableOfValues[1])] = true
-			end
-		else
-			selections[tostring(tableOfValues)] = true
-		end
-		updateList(currentOptions)
-		if callback then task.spawn(callback, getActiveSelectionsTable()) end
+	function DropdownObject:Set(value)
+		currentSelection = value
+		local arrow = opened and "  ▲" or "  ▼"
+		button.Text = "  " .. tostring(value) .. arrow
+		if callback then task.spawn(callback, value) end
 	end
 
 	function DropdownObject:Get()
-		return getActiveSelectionsTable()
+		return currentSelection
 	end
 
 	setmetatable(DropdownObject, {
-		__index = function(_, key) return frame[key] end,
-		__newindex = function(_, key, value) frame[key] = value end
+		__index = function(_, key)
+			return frame[key]
+		end,
+		__newindex = function(_, key, value)
+			frame[key] = value
+		end
 	})
 
 	return DropdownObject
