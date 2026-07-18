@@ -441,7 +441,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(1, 0, 0, 40)
 	button.BackgroundTransparency = 1
-	button.Text = "  " .. title .. " (0)  ▼"
+	button.Text = "   " .. title .. " (0)  ▼"
 	button.Font = Theme.SemiBoldFont
 	button.TextSize = 13
 	button.TextColor3 = Theme.Colors.Text
@@ -570,7 +570,8 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 			if not currentVal then return end
 			
 			if isMultiSelect then
-				selections[currentVal] = not selections[currentVal]
+				selections[currentVal] = not selections[selections[currentVal] == true and currentVal or currentVal] -- Toggles value
+				selections[currentVal] = not (selections[currentVal] == nil or selections[currentVal] == false)
 			else
 				table.clear(selections)
 				selections[currentVal] = true
@@ -670,7 +671,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 end
 
 --------------------------------------------------------
--- KEYBIND (Corretto, Completato e Ottimizzato)
+-- KEYBIND
 --------------------------------------------------------
 function Elements.Keybind(parent, title, defaultKey, callback)
 	local UIS = game:GetService("UserInputService")
@@ -709,7 +710,6 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 		bind.Text = "..."
 	end)
 
-	-- Connessione centralizzata per ascoltare i tasti della tastiera
 	UIS.InputBegan:Connect(function(input, gameProcessed)
 		if gameProcessed then return end
 
