@@ -30,7 +30,6 @@ function Elements.CreateWindow(title)
 	ScreenGui.Name = "ScorpioX_UI"
 	ScreenGui.ResetOnSpawn = false
 	
-	-- Sicurezza per l'esecuzione in CoreGui o PlayerGui
 	local success, err = pcall(function()
 		ScreenGui.Parent = game:GetService("CoreGui")
 	end)
@@ -41,14 +40,13 @@ function Elements.CreateWindow(title)
 	local MainFrame = Instance.new("Frame")
 	MainFrame.Size = UDim2.new(0, 450, 0, 350)
 	MainFrame.Position = UDim2.new(0.5, -225, 0.5, -175)
-	MainFrame.BackgroundColor3 = Theme.Colors.Background or Color3.fromRGB(20, 20, 20)
+	MainFrame.BackgroundColor3 = Theme.Colors.Background or Color3.fromRGB(20, 20, 20) -- cite: 178
 	MainFrame.BorderSizePixel = 0
 	MainFrame.Parent = ScreenGui
 
 	Utils.Corner(MainFrame)
 	Utils.Stroke(MainFrame, Theme.Colors.Stroke)
 
-	-- Titolo dell'Hub
 	local TitleLabel = Instance.new("TextLabel")
 	TitleLabel.Size = UDim2.new(1, -20, 0, 35)
 	TitleLabel.Position = UDim2.new(0, 15, 0, 0)
@@ -60,7 +58,6 @@ function Elements.CreateWindow(title)
 	TitleLabel.Text = title or "ScorpioX Hub"
 	TitleLabel.Parent = MainFrame
 
-	-- Container interno con Scrolling per gli elementi
 	local Container = Instance.new("ScrollingFrame")
 	Container.Size = UDim2.new(1, -20, 1, -50)
 	Container.Position = UDim2.new(0, 10, 0, 40)
@@ -75,7 +72,6 @@ function Elements.CreateWindow(title)
 	Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	Layout.Parent = Container
 
-	-- Auto-aggiornamento della dimensione dello scrolling
 	Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 		Container.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 10)
 	end)
@@ -88,7 +84,7 @@ end
 --------------------------------------------------------
 function Elements.Section(parent, text)
 	local container = Instance.new("Frame")
-	container.Size = UDim2.new(0.95, 0, 0, 30)
+	container.Size = UDim2.new(0.95, 0, 0, 30) -- cite: 179
 	container.BackgroundTransparency = 1
 	container.Parent = parent
 
@@ -135,7 +131,7 @@ function Elements.Paragraph(parent, title, body)
 	Body.Text = body
 	Body.Parent = frame
 
-	return frame
+	return frame -- cite: 180
 end
 
 --------------------------------------------------------
@@ -191,7 +187,7 @@ function Elements.Button(parent, text, callback)
 	button.BackgroundTransparency = 1
 	button.Font = Theme.SemiBoldFont
 	button.Text = text
-	button.TextSize = 13
+	button.TextSize = 13 -- cite: 181
 	button.TextColor3 = Theme.Colors.Text
 	button.Parent = frame
 
@@ -251,7 +247,7 @@ function Elements.Toggle(parent, title, default, callback)
 	knob.Position = UDim2.new(0, 3, 0.5, -7)
 	knob.BackgroundColor3 = Color3.fromRGB(160, 160, 160)
 	knob.BorderSizePixel = 0
-	knob.Parent = bg
+	knob.Parent = bg -- cite: 182
 
 	Utils.Corner(knob)
 
@@ -301,7 +297,7 @@ function Elements.Toggle(parent, title, default, callback)
 		__index = function(_, key)
 			return frame[key]
 		end,
-		__newindex = function(_, key, value)
+		__newindex = function(_, key, value) -- cite: 183
 			frame[key] = value
 		end
 	})
@@ -347,7 +343,7 @@ function Elements.Slider(parent, title, min, max, default, callback)
 	Utils.Corner(bar)
 
 	local fill = Instance.new("Frame")
-	fill.Size = UDim2.new(math.clamp((default - min) / (max - min), 0, 1), 0, 1, 0)
+	fill.Size = UDim2.new(math.clamp((default - min) / (max - min), 0, 1), 0, 1, 0) -- cite: 184
 	fill.BackgroundColor3 = Theme.Colors.Accent
 	fill.BorderSizePixel = 0
 	fill.Parent = bar
@@ -371,7 +367,6 @@ function Elements.Slider(parent, title, min, max, default, callback)
 			dragging = true
 			SetValue(input.Position.X)
 			
-			-- Connessioni temporanee per evitare memory leak globali
 			table.insert(connections, UIS.InputChanged:Connect(function(moveInput)
 				if dragging and (moveInput.UserInputType == Enum.UserInputType.MouseMovement or moveInput.UserInputType == Enum.UserInputType.Touch) then
 					SetValue(moveInput.Position.X)
@@ -394,7 +389,7 @@ end
 --------------------------------------------------------
 -- TEXTBOX
 --------------------------------------------------------
-function Elements.TextBox(parent, title, placeholder, callback)
+function Elements.TextBox(parent, title, placeholder, callback) -- cite: 185
 	local frame = CreateContainer(parent, 44)
 
 	local label = Instance.new("TextLabel")
@@ -432,8 +427,8 @@ function Elements.TextBox(parent, title, placeholder, callback)
 end
 
 --------------------------------------------------------------------------
--- DROPDOWN IBRIDO
---------------------------------------------------------------------------
+-- DROPDOWN IBRIDO (FIXATO)
+--------------------------------================--------------------------
 function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 	local frame = CreateContainer(parent, 40)
 	frame.ClipsDescendants = true
@@ -441,7 +436,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(1, 0, 0, 40)
 	button.BackgroundTransparency = 1
-	button.Text = "   " .. title .. " (0)  ▼"
+	button.Text = "   " .. title .. " (0)  ▼" -- cite: 186
 	button.Font = Theme.SemiBoldFont
 	button.TextSize = 13
 	button.TextColor3 = Theme.Colors.Text
@@ -478,7 +473,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 		local prefix, number, suffix = str:match(pattern)
 		if number then
 			local mainText = str:gsub(pattern, "")
-			local greenColor = "rgb(0, 255, 127)" 
+			local greenColor = "rgb(0, 255, 127)" -- cite: 187
 			return mainText .. prefix .. "<font color=\"" .. greenColor .. "\">" .. number .. "</font>" .. suffix
 		end
 		return str
@@ -507,7 +502,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 
 	local function getActiveSelectionsTable()
 		local active = {}
-		for _, optName in ipairs(currentOptions) do
+		for _, optName in ipairs(currentOptions) do -- cite: 188
 			if selections[tostring(optName)] then
 				table.insert(active, tostring(optName))
 			end
@@ -558,7 +553,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 		end
 
 		opt.MouseEnter:Connect(function()
-			if not selections[optName] then Utils.Tween(opt, {TextColor3 = Theme.Colors.Text}) end
+			if not selections[optName] then Utils.Tween(opt, {TextColor3 = Theme.Colors.Text}) end -- cite: 189
 		end)
 		
 		opt.MouseLeave:Connect(function()
@@ -570,8 +565,12 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 			if not currentVal then return end
 			
 			if isMultiSelect then
-				selections[currentVal] = not selections[selections[currentVal] == true and currentVal or currentVal] -- Toggles value
-				selections[currentVal] = not (selections[currentVal] == nil or selections[currentVal] == false)
+				-- FIXATO: Gestione pulita dell'inversione dello stato booleano
+				if selections[currentVal] == true then
+					selections[currentVal] = false
+				else
+					selections[currentVal] = true
+				end
 			else
 				table.clear(selections)
 				selections[currentVal] = true
@@ -614,7 +613,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 		list.CanvasSize = UDim2.new(0, 0, 0, #currentOptions * 28)
 		if opened then
 			local height = math.min(#currentOptions * 28 + 5, 115)
-			list.Size = UDim2.new(1, -24, 0, height)
+			list.Size = UDim2.new(1, -24, 0, height) -- cite: 190
 			Utils.Tween(frame, {Size = UDim2.new(0.95, 0, 0, height + 50)})
 		end
 	end
@@ -664,7 +663,7 @@ function Elements.Dropdown(parent, title, options, isMultiSelect, callback)
 
 	setmetatable(DropdownObject, {
 		__index = function(_, key) return frame[key] end,
-		__newindex = function(_, key, value) frame[key] = value end
+		__newindex = function(_, key, value) frame[key] = value end -- cite: 191
 	})
 
 	return DropdownObject
@@ -713,7 +712,7 @@ function Elements.Keybind(parent, title, defaultKey, callback)
 	UIS.InputBegan:Connect(function(input, gameProcessed)
 		if gameProcessed then return end
 
-		if waiting then
+		if waiting then -- cite: 192
 			if input.UserInputType == Enum.UserInputType.Keyboard then
 				waiting = false
 				currentBind = input.KeyCode
